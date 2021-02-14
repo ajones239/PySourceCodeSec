@@ -1,11 +1,14 @@
 #import requests
 import os
 import logging
+import base64
+import requests
 from pprint import pprint
 from github import Github
 
 logging.basicConfig(format='%(message)s')
 log = logging.getLogger(__name__)
+raw_dir = "./SourceCodeFetcher/raw/"
 
 # Loading GitHub credentials works on Linux, may work on Mac, definitely will not work on Windows.
 # Each line in '~/.git-credentials' contains credentials to a website for hosting git repos (GitHub,
@@ -30,8 +33,30 @@ def load_github_credentials():
         pwd = None
     finally:
         return (user,pwd)
+
+# Given a Github.Repository.Repository, returns True if the license is MIT, False otherwise
+# MIT is one of the most permissive licenses, so there are no requirements using their code
+def license_is_MIT(repo):
+    try:
+        mit_txt = base64.b64decode(repo.get_license().content.encode()).decode()[:3]
+    except:
+        mit_txt = None
+    return mit_txt == "MIT"
     
 creds = load_github_credentials()
 g = Github(creds[0], creds[1])
 for repo in g.search_repositories("python"):
-    print(repo)
+    if license_is_MIT(repo):
+        for content in repo.get_contents(""):
+            split_content = content.name.split(".")
+            if split_content[len(split_content) - 1] == "py":
+                req = requests.get(content.download_url)
+                fname = raw_dir + repo.name + "_" + content.name
+                if not os.path.isfile(fname):
+                    with open(fname, 'wb') as f:
+                        f.write(req.content)
+
+
+
+
+
