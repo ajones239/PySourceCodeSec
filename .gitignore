@@ -1,1 +1,3 @@
 pysourcecodesec_env/*
+creds.conf
+*.swp

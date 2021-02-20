@@ -1,14 +1,12 @@
 #import requests
 import os
-import logging
 import base64
 import requests
 from pprint import pprint
 from github import Github
 
-logging.basicConfig(format='%(message)s')
-log = logging.getLogger(__name__)
-raw_dir = "./SourceCodeFetcher/raw/"
+from pysourcecodesec import logger
+
 
 # Loading GitHub credentials works on Linux, may work on Mac, definitely will not work on Windows.
 # Each line in '~/.git-credentials' contains credentials to a website for hosting git repos (GitHub,
@@ -28,7 +26,7 @@ def load_github_credentials():
                 pwd = l.split(':')[1].replace("%20", " ")
         credfile.close()
     except FileNotFoundError:
-        log.warning("Failed to load credentials: '~/.git-credentials' does not exist")
+        logger.warning("Failed to load credentials: '~/.git-credentials' does not exist")
         user = None
         pwd = None
     finally:
@@ -55,8 +53,4 @@ for repo in g.search_repositories("python"):
                 if not os.path.isfile(fname):
                     with open(fname, 'wb') as f:
                         f.write(req.content)
-
-
-
-
 
