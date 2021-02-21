@@ -1,3 +1,0 @@
-make logger global
-add fallback config file for github credentials
-    make ~/.git-credentials fallback, custom config default
