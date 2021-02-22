@@ -1,7 +1,6 @@
 import os
 import base64
 import requests
-from pprint import pprint
 from github import Github
 
 from pysourcecodesec import logger
@@ -21,7 +20,7 @@ def license_is_MIT(repo):
 class FetchTool:
 
     def __init__(self):
-        self.creds = self.load_github_credentials()
+        self.load_github_credentials()
 
     # This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from
     # creds.conf, it then checks for the file ~/.git-credentials. Neither exist, GitHub API calls are unauthenticated which 
@@ -32,7 +31,7 @@ class FetchTool:
     # Format: 'https://<user>:<password>@<website>'
     # Note: spaces in password are replaced with '%20'. Other specials characters *may* be subsituted by 
     # a special escape sequence as well.
-    def load_github_credentials():
+    def load_github_credentials(self):
         user = None
         pwd = None
         # try loading from creds.conf
@@ -65,7 +64,7 @@ class FetchTool:
             logger.warning("No credentials found, using unauthenticated API may result in less API calls allowed from this IP address.")
         else:
             logger.info("GitHub credentials found for user {}".format(user))
-        return (user,pwd)
+        self.creds = (user,pwd)
 
     def collect_python_files(self):       
         g = Github(self.creds[0], self.creds[1])
