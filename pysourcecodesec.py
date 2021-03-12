@@ -1,5 +1,4 @@
 import logging
-import sys
 
 # raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
 raw_dir = "data/raw/" 

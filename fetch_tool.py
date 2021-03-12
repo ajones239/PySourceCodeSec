@@ -66,9 +66,11 @@ class FetchTool:
             logger.info("GitHub credentials found for user {}".format(user))
         self.creds = (user,pwd)
 
-    def collect_python_files(self):       
+    # Searches GitHub for 'python' and saves all files with a MIT license to data/raw
+    # Iterates over all repos found with this search, or until API access times out
+    def collect_python_files(self, search_term):       
         g = Github(self.creds[0], self.creds[1])
-        for repo in g.search_repositories("python"):
+        for repo in g.search_repositories(search_term):
             if license_is_MIT(repo):
                 for content in repo.get_contents(""):
                     split_content = content.name.split(".")
