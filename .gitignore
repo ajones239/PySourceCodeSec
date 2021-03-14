@@ -3,3 +3,4 @@ creds.conf
 *.swp
 events.log
 data/*
+__pycache__/*
