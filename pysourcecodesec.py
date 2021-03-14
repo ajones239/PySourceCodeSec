@@ -45,6 +45,7 @@ def main():
             cmds[cmd](args[cmd])
         except KeyError:
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
+
         '''
         if cmd == "f":
             sample_fetcher.start()
