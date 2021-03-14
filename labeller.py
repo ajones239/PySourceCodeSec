@@ -1,16 +1,20 @@
 from threading import Thread
 from threading import Lock
 
+from pysourcecodesec import *
+'''
 from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
 from pysourcecodesec import processed_dir
+'''
 
 
 class Labeller(Thread):
-    def __init__:
-        super().__init__(target=self.__run_labeller)
+
+    def __init__(self):
         self.stop_lock = Lock()
         self.running = False
+        super().__init__(target=self.__run_labeller)
 
     
     def start(self):

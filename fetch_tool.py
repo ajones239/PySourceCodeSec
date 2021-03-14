@@ -29,10 +29,11 @@ class FetchTool(Thread):
         self.stop_lock = Lock()
         self.running = False
         self.search_term = default_search_term
-        super().__init__(target=self.__run_fetch_tool)
+        super().__init__(target=self.__collect_python_files)
 
 
     def start(self):
+        print("hello")
         logger.info("Starting sample fetch tool...")
         self.running = True
         super().start()
@@ -48,11 +49,19 @@ class FetchTool(Thread):
         logger.info("Sample fetch tool successfully stopped.")
 
 
+    def is_running(self):
+        return self.running
+
+
     def set_search_term(self, new_search_term):
         logger.info("Updating fetch tool search term from {} to {}".format(self.search_term, new_search_term))
-        self.stop()
+        restart = False
+        if self.running:
+            self.stop()
+            restart = True
         self.search_term = new_search_term
-        self.start()
+        if restart:
+            self.start()
 
 
     # This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from
@@ -103,9 +112,12 @@ class FetchTool(Thread):
     # Searches GitHub for 'python' and saves all files with a MIT license to data/raw
     # Iterates over all repos found with this search, or until API access times out
     def __collect_python_files(self):
-        for repo in githubAPI.search_repositories(self.search_term):
+        done = False
+        for repo in self.githubAPI.search_repositories(self.search_term):
             if license_is_MIT(repo):
                 for content in repo.get_contents(""):
+                    if done:
+                        break
                     split_content = content.name.split(".")
                     if split_content[len(split_content) - 1] == "py":
                         req = requests.get(content.download_url)
@@ -113,14 +125,10 @@ class FetchTool(Thread):
                         if not os.path.isfile(fname):
                             with open(fname, 'wb') as f:
                                 f.write(req.content)
-
-
-    def __run_fetch_tool(self):
-        done = False
-        while not done:
-
-            self.stop_lock.acquire()
-            if not self.running:
-                done = True
-            self.stop_lock.release()
+                    self.stop_lock.acquire()
+                    if not self.running:
+                        done = True
+                    self.stop_lock.release()
+                if done:
+                    break
 
