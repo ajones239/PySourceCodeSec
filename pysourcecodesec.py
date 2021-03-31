@@ -40,6 +40,7 @@ def main():
         cmd = input("cmd: ")
         if cmd is "q":
             print("quiting...")
+            sample_fetcher.stop()
             break
         try:
             cmds[cmd](args[cmd])

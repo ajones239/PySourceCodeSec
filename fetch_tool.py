@@ -33,7 +33,6 @@ class FetchTool(Thread):
 
 
     def start(self):
-        print("hello")
         logger.info("Starting sample fetch tool...")
         self.running = True
         super().start()
@@ -45,7 +44,8 @@ class FetchTool(Thread):
         self.stop_lock.acquire()
         self.running = False
         self.stop_lock.release()
-        self.join()
+        if self.is_alive():
+            self.join()
         logger.info("Sample fetch tool successfully stopped.")
 
 
