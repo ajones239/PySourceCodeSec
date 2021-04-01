@@ -25,6 +25,7 @@ def license_is_MIT(repo):
 class FetchTool(Thread):
 
     def __init__(self):
+        self.tname = "sample fetch tool"
         self.__load_github_credentials()
         self.stop_lock = Lock()
         self.running = False
@@ -47,10 +48,13 @@ class FetchTool(Thread):
         if self.is_alive():
             self.join()
         logger.info("Sample fetch tool successfully stopped.")
+    
 
-
-    def is_running(self):
-        return self.running
+    def status(self):
+        if self.running:
+            print("Sample fetch tool is currently running")
+        else:
+            print("Sample fetch tool is currently stopped")
 
 
     def set_search_term(self, new_search_term):

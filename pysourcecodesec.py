@@ -1,11 +1,12 @@
 import logging
 
-import fetch_tool 
-import labeller
-
-# raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
-raw_dir = "data/raw/" 
-processed_dir = "data/processed"
+log_file = 'events.log'
+logging.basicConfig(filename=log_file,
+                    format='%(asctime)s | %(levelname)s | %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+logger.info("Initialized logging")
 
 # contains GitHub login credentials. Comments start with '#' and must be the first character on the line, 
 #   must define 'user' and 'pwd'. Don't include quotes or leading/trailing spaces
@@ -14,26 +15,24 @@ processed_dir = "data/processed"
 #   pwd=my password
 github_credentials = 'creds.conf' 
 
-log_file = 'events.log'
+# raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
+raw_dir = "data/raw/" 
+processed_dir = "data/processed"
 
-logging.basicConfig(filename=log_file,
-                    format='%(asctime)s | %(levelname)s | %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-logger.info("Initialized logging")
+from labeller import *
+from fetch_tool import *
 
 
 def main():
-    sample_fetcher = fetch_tool.FetchTool()
-    sample_labeller = labeller.Labeller()
+    sample_fetcher = FetchTool()
+    sample_labeller = Labeller()
     cmds = {
         "1": fetch_tool_prompt,
         "2": labeller_prompt,
     }
     args = {
         "1": sample_fetcher,
-        "2": labeller
+        "2": sample_labeller
     }
     while True:
         main_prompt()
@@ -56,23 +55,47 @@ def main():
 
 
 def fetch_tool_prompt(fetcher):
-    print("\n(1) start")
-    print("(2) stop")
-    print("(3) status")
-    cmds = {
-        "1": fetcher.start,
-        "2": fetcher.stop,
-        "3": fetcher.is_running
-    }
-    try:
-        cmd = input("Command: ")
-        cmds[cmd]()
-    except KeyError:
-        print("Sorry, {} does not correspond to a valid command.".format(cmd))
+    while True:
+        print("\nSample Fetch Tool")
+        print("(1) start")
+        print("(2) stop")
+        print("(3) status")
+        print("(4) back")
+        cmds = {
+            "1": fetcher.start,
+            "2": fetcher.stop,
+            "3": fetcher.status
+        }
+        try:
+            cmd = input("cmd: ")
+            cmds[cmd]()
+        except KeyError:
+            if cmd == "4":
+                break
+            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+    print()
 
 
 def labeller_prompt(labeller):
-    print("here2")
+    while True:
+        print("\nSample Labeller")
+        print("(1) start")
+        print("(2) stop")
+        print("(3) status")
+        print("(4) back")
+        cmds = {
+            "1": labeller.start,
+            "2": labeller.stop,
+            "3": labeller.status
+        }
+        try:
+            cmd = input("cmd: ")
+            cmds[cmd]()
+        except KeyError:
+            if cmd == "4":
+                break
+            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+    print()
             
 
 def main_prompt():
