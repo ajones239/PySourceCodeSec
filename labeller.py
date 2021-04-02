@@ -5,6 +5,13 @@ from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
 from pysourcecodesec import processed_dir
 
+features = {
+    0:num_of_strings,
+    1:
+    2:
+    3:
+}
+
 class Labeller(Thread):
 
     def __init__(self):
