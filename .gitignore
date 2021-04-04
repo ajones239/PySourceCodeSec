@@ -2,5 +2,5 @@ pysourcecodesec_env/*
 creds.conf
 *.swp
 events.log
-data/*
+data/raw/*
 __pycache__/*
