@@ -8,6 +8,8 @@ from threading import Lock
 from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
 from pysourcecodesec import github_credentials
+from pysourcecodesec import raw_lock
+from pysourcecodesec import current_file
 
 
 default_search_term = "python"
@@ -34,6 +36,9 @@ class FetchTool(Thread):
 
 
     def start(self):
+        if self.running:
+            logger.warning("Fetch tool is already running...")
+            return
         logger.info("Starting sample fetch tool...")
         self.running = True
         super().start()
@@ -126,6 +131,9 @@ class FetchTool(Thread):
                     if split_content[len(split_content) - 1] == "py":
                         req = requests.get(content.download_url)
                         fname = raw_dir + repo.name + "_" + content.name
+                        raw_lock.acquire()
+                        current_file = fname
+                        raw_lock.release()
                         if not os.path.isfile(fname):
                             with open(fname, 'wb') as f:
                                 f.write(req.content)

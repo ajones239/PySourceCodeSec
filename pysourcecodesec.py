@@ -1,10 +1,11 @@
 import logging
+from threading import Lock
 
 log_file = 'events.log'
 logging.basicConfig(filename=log_file,
                     format='%(asctime)s | %(levelname)s | %(message)s',
                     datefmt='%H:%M:%S',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.info("Initialized logging")
 
@@ -17,7 +18,10 @@ github_credentials = 'creds.conf'
 
 # raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
 raw_dir = "data/raw/" 
-processed_dir = "data/processed"
+processed_file = "data/processed.txt"
+current_file = ""
+raw_lock = Lock()
+processed_lock = Lock()
 
 from labeller import *
 from fetch_tool import *
@@ -54,23 +58,34 @@ def main():
         '''
 
 
+def update_fetch_tool_search_term(fetcher):
+    new_term = input("Enter new search term: ")
+    fetcher.set_search_term(new_term)
+    
+    
 def fetch_tool_prompt(fetcher):
     while True:
         print("\nSample Fetch Tool")
         print("(1) start")
         print("(2) stop")
         print("(3) status")
-        print("(4) back")
+        print("(4) update search term")
+        print("(5) back")
         cmds = {
             "1": fetcher.start,
             "2": fetcher.stop,
-            "3": fetcher.status
+            "3": fetcher.status,
+            "4": update_fetch_tool_search_term
         }
         try:
             cmd = input("cmd: ")
-            cmds[cmd]()
-        except KeyError:
+            cmd = cmd.strip()
             if cmd == "4":
+                cmds[cmd](fetcher)
+            else:
+                cmds[cmd]()
+        except KeyError:
+            if cmd == "b":
                 break
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
     print()
