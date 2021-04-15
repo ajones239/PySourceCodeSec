@@ -1,4 +1,5 @@
 import re
+import os
 import time
 import hashlib
 from threading import Thread
@@ -84,7 +85,7 @@ The following test modules are the default available tests for Bandit
     B703	django_mark_safe
 '''
 
-bandit_cmd = 'bandit -r -t B102,B104,B105,B106,B107,B108,B307,B404,B506,B602,B603,B604,B605,B606,B607,B609 \
+bandit_cmd = 'bandit -t B102,B104,B105,B106,B107,B108,B307,B404,B506,B602,B603,B604,B605,B606,B607,B609 \
 --format custom --msg-template "{relpath}:{line}:{test_id}:{confidence}:{severity}:{msg}"'
 
 def num_of_strings(line):
@@ -200,7 +201,6 @@ def num_of_invocations(line):
         if line[i] == '(':
             if i == 0:
                 continue
-            print("here")
             if line[i-1] != ' ' and line[i-1] != '=':
                 inv += 1
     return inv
@@ -256,26 +256,55 @@ class Labeller(Thread):
     def __select_file(self):
         var = None
         raw_lock.acquire()
-        for f in os.listdir("data/raw/"):
-            if f not in in self.processed_files and f != raw_write_file:
+        for f in os.listdir(raw_dir):
+            if f not in self.processed_files and f != raw_write_file:
                 self.processed_files.add(f)
                 var = f
                 break
         raw_lock.release()
         return var
 
+    def __write_to_csv(self, src, label):
+        out = ""
+        for feature in features:
+            out += str(features[feature](src)) + ","
+        out += label + "\n"
+        processed_lock.acquire()
+        with open(processed_file, 'a') as f:
+            f.write(out)
+        processed_lock.release()
+
+    def __is_white_space(self, line):
+        if len(line) == 0:
+            return True
+        for c in line:
+            if c != " " and c != "\t":
+                return False
+        return True
+
     def __run_labeller(self):
         done = False
         while not done:
-            fname = self._select_file()
+            fname = self.__select_file()
             if fname is None:
                 time.sleep(2) # if no files in data/raw are unprocessed, wait and try again
                 continue
-            with open(fname) as r_file:
+            with open(raw_dir + fname) as r_file:
                 data = r_file.readlines()
                 bandit_output = os.popen(bandit_cmd + " " + fname).read().split('\n')
-            for line in data:
-                print(line)
+            for i in range(len(data)):
+                if self.__is_white_space(data[i]):
+                    continue
+                label = "none"
+                for vuln in bandit_output:
+                    if len(vuln) == 0:
+                        continue
+                    if vuln[:len(raw_dir)] != raw_dir:
+                        continue
+                    if int(vuln.split(':')[1]) == i:
+                        label = vuln.split(':')[2]
+                self.__write_to_csv(data[i], label)
+
             self.stop_lock.acquire()
             if not self.running:
                 done = True
