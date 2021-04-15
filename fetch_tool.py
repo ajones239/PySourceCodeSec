@@ -9,7 +9,7 @@ from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
 from pysourcecodesec import github_credentials
 from pysourcecodesec import raw_lock
-from pysourcecodesec import current_file
+from pysourcecodesec import raw_write_file
 
 
 default_search_term = "python"
@@ -134,7 +134,7 @@ class FetchTool(Thread):
                         req = requests.get(content.download_url)
                         fname = raw_dir + repo.name + "_" + content.name
                         raw_lock.acquire()
-                        current_file = fname
+                        raw_write_file = fname
                         raw_lock.release()
                         if not os.path.isfile(fname):
                             with open(fname, 'wb') as f:

@@ -19,7 +19,7 @@ github_credentials = 'creds.conf'
 # raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
 raw_dir = "data/raw/" 
 processed_file = "data/processed.txt"
-current_file = ""
+raw_write_file = ""
 raw_lock = Lock()
 processed_lock = Lock()
 

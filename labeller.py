@@ -1,4 +1,5 @@
 import re
+import time
 import hashlib
 from threading import Thread
 from threading import Lock
@@ -8,7 +9,7 @@ from pysourcecodesec import raw_dir
 from pysourcecodesec import processed_file
 from pysourcecodesec import raw_lock
 from pysourcecodesec import processed_lock
-from pysourcecodesec import current_file
+from pysourcecodesec import raw_write_file
 
 '''
 The following test modules are the default available tests for Bandit
@@ -223,6 +224,7 @@ features = {
 class Labeller(Thread):
 
     def __init__(self):
+        self.processed_files = set()
         self.tname = "sample labeller"
         self.stop_lock = Lock()
         self.running = False
@@ -251,16 +253,27 @@ class Labeller(Thread):
         else:
             print("Sample labeller is stopped")
 
+    def __select_file(self):
+        var = None
+        raw_lock.acquire()
+        for f in os.listdir("data/raw/"):
+            if f not in in self.processed_files and f != raw_write_file:
+                self.processed_files.add(f)
+                var = f
+                break
+        raw_lock.release()
+        return var
 
     def __run_labeller(self):
         done = False
         while not done:
-            raw_lock.acquire()
-            with open(current_file) as r_file:
+            fname = self._select_file()
+            if fname is None:
+                time.sleep(2) # if no files in data/raw are unprocessed, wait and try again
+                continue
+            with open(fname) as r_file:
                 data = r_file.readlines()
-                fname = current_file
                 bandit_output = os.popen(bandit_cmd + " " + fname).read().split('\n')
-            raw_lock.release()
             for line in data:
                 print(line)
             self.stop_lock.acquire()
