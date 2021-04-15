@@ -111,6 +111,8 @@ class FetchTool(Thread):
                             pwd = l.split(':')[1].replace("%20", " ")
             except FileNotFoundError:
                 logger.warning("~/.git-credentials does not exist")
+            except KeyError:
+                logger.warning
         if user == None and pwd == None:
             logger.warning("No credentials found, using unauthenticated API may result in less API calls allowed from this IP address.")
         else:

@@ -41,14 +41,14 @@ def main():
     while True:
         main_prompt()
         cmd = input("cmd: ")
-        if cmd is "q":
+        if cmd == "q":
             print("quiting...")
             sample_fetcher.stop()
             break
         try:
             cmds[cmd](args[cmd])
         except KeyError:
-            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+            print("Sorry, {} does not correspond to a valid command.\n".format(cmd))
 
         '''
         if cmd == "f":
