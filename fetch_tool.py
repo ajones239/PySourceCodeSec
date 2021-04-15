@@ -112,7 +112,7 @@ class FetchTool(Thread):
             except FileNotFoundError:
                 logger.warning("~/.git-credentials does not exist")
             except KeyError:
-                logger.warning
+                logger.warning("No HOME environment variable")
         if user == None and pwd == None:
             logger.warning("No credentials found, using unauthenticated API may result in less API calls allowed from this IP address.")
         else:
