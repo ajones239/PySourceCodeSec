@@ -23,8 +23,8 @@ raw_write_file = ""
 raw_lock = Lock()
 processed_lock = Lock()
 
-from labeller import *
-from fetch_tool import *
+from labeller.labeller import *
+from fetch_tool.fetch_tool import *
 
 
 def main():
