@@ -113,11 +113,19 @@ def labeller_prompt(labeller):
     print()
             
 
+#def machine_learning_prompt():
+#    print("\nWhich model would you like to manage?")
+#    print("(1) logistic regression")
+#    cmds = {
+#        "1": 
+#    }
+
+ 
 def main_prompt():
     print("What would you like to manage?")
     print("(1) sample fetch tool")
     print("(2) sample labeller")
-    print("(3) neural network trainer")
+    print("(3) machine learning models")
     print("(q) quit")
 
 if __name__ == '__main__':

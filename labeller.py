@@ -85,7 +85,7 @@ The following test modules are the default available tests for Bandit
     B703	django_mark_safe
 '''
 
-bandit_cmd = 'bandit -t B102,B104,B105,B106,B107,B108,B307,B404,B506,B602,B603,B604,B605,B606,B607,B609 \
+bandit_cmd = 'python3 -m bandit -t B102,B104,B105,B106,B107,B108,B307,B404,B506,B602,B603,B604,B605,B606,B607,B609 \
 --format custom --msg-template "{relpath}:{line}:{test_id}:{confidence}:{severity}:{msg}"'
 
 def num_of_strings(line):
