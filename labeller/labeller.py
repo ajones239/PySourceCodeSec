@@ -11,6 +11,7 @@ from pysourcecodesec import raw_lock
 from pysourcecodesec import processed_lock
 from pysourcecodesec import raw_write_file
 from labeller.features import features
+from labeller.features import csv_header
 from labeller.features import bandit_cmd
 
 class Labeller(Thread):
@@ -20,6 +21,15 @@ class Labeller(Thread):
         self.tname = "sample labeller"
         self.stop_lock = Lock()
         self.running = False
+        if not os.path.isfile(processed_file):
+            with open(processed_file) as f:
+                f.write(csv_header + '\n', 'x')
+        else:
+            with open(processed_file,'r+') as f:
+                content = f.read()
+                if content.split('\n')[0] != csv_header:
+                    f.seek(0,0)
+                    f.write(csv_header + '\n' + content)
         super().__init__(target=self.__run_labeller)
 
     
@@ -74,6 +84,28 @@ class Labeller(Thread):
                 return False
         return True
 
+    def __get_label(self, code):
+        labels = {
+            "none":"none",
+            "B102":"calling_external_function",
+            "B104":"hardcoded_information",
+            "B105":"hardcoded_information",
+            "B106":"hardcoded_information",
+            "B107":"hardcoded_information",
+            "B108":"hardcoded_information",
+            "B307":"calling_external_function",
+            "B404":"calling_external_function",
+            "B506":"loading_yaml",
+            "B602":"calling_external_function",
+            "B603":"calling_external_function",
+            "B604":"calling_external_function",
+            "B605":"calling_external_function",
+            "B606":"calling_external_function",
+            "B607":"calling_external_function",
+            "B609":"calling_external_function",
+        }
+        return labels[code]
+
     def __run_labeller(self):
         done = False
         while not done:
@@ -94,9 +126,8 @@ class Labeller(Thread):
                     if vuln[:len(raw_dir)] != raw_dir:
                         continue
                     if int(vuln.split(':')[1]) == i:
-                        label = vuln.split(':')[2]
-                self.__write_to_csv(data[i], label)
-
+                        vuln_code = vuln.split(':')[2]
+                self.__write_to_csv(data[i], self.__get_label(vuln_code))
             self.stop_lock.acquire()
             if not self.running:
                 done = True
