@@ -3,6 +3,7 @@ creds.conf
 *.swp
 events.log
 data/*
+data/processed.csv
 ml/__pycache__/*
 labeller/__pycache__/*
 fetch_tool/__pycache__/*
