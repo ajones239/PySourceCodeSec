@@ -22,8 +22,8 @@ class Labeller(Thread):
         self.stop_lock = Lock()
         self.running = False
         if not os.path.isfile(processed_file):
-            with open(processed_file) as f:
-                f.write(csv_header + '\n', 'x')
+            with open(processed_file, 'x') as f:
+                f.write(csv_header + '\n')
         else:
             with open(processed_file,'r+') as f:
                 content = f.read()
@@ -115,18 +115,18 @@ class Labeller(Thread):
                 continue
             with open(raw_dir + fname) as r_file:
                 data = r_file.readlines()
-                bandit_output = os.popen(bandit_cmd + " " + fname).read().split('\n')
+                bandit_output = os.popen(bandit_cmd + " " + raw_dir + fname + "2> /dev/null").read().split('\n') # this likely will not work on windows
             for i in range(len(data)):
                 if self.__is_white_space(data[i]):
                     continue
-                label = "none"
+                vuln_code = "none"
                 for vuln in bandit_output:
-                    if len(vuln) == 0:
+                    try:
+                        if int(vuln.split(':')[1]) == i+1:
+                            vuln_code = vuln.split(':')[2]
+                            break
+                    except IndexError:
                         continue
-                    if vuln[:len(raw_dir)] != raw_dir:
-                        continue
-                    if int(vuln.split(':')[1]) == i:
-                        vuln_code = vuln.split(':')[2]
                 self.__write_to_csv(data[i], self.__get_label(vuln_code))
             self.stop_lock.acquire()
             if not self.running:
