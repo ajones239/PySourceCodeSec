@@ -2,5 +2,8 @@ pysourcecodesec_env/*
 creds.conf
 *.swp
 events.log
-data/raw/*
+data/*
+ml/__pycache__/*
+labeller/__pycache__/*
+fetch_tool/__pycache__/*
 __pycache__/*
