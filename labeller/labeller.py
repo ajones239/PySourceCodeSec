@@ -85,10 +85,6 @@ class Labeller(Thread):
                 return False
         return True
 
-    def __get_label(self, code):
-
-        return labels[code]
-
     def __run_labeller(self):
         done = False
         while not done:
@@ -99,7 +95,7 @@ class Labeller(Thread):
             with open(raw_dir + fname) as r_file:
                 data = r_file.readlines()
                 bandit_output = os.popen(bandit_cmd + " " + raw_dir + fname).read().split('\n') # this likely will not work on windows
-            for i in range(len(data)):
+            for i in range(len(data)):                                                          # because raw_dir likely uses '/' over '\'
                 if self.__is_white_space(data[i]):
                     continue
                 vuln_code = "none"
