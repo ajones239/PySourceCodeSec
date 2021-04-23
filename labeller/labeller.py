@@ -13,6 +13,7 @@ from pysourcecodesec import raw_write_file
 from labeller.features import features
 from labeller.features import csv_header
 from labeller.features import bandit_cmd
+from labeller.features import labels
 
 class Labeller(Thread):
 
@@ -85,25 +86,7 @@ class Labeller(Thread):
         return True
 
     def __get_label(self, code):
-        labels = {
-            "none":"none",
-            "B102":"calling_external_function",
-            "B104":"hardcoded_information",
-            "B105":"hardcoded_information",
-            "B106":"hardcoded_information",
-            "B107":"hardcoded_information",
-            "B108":"hardcoded_information",
-            "B307":"calling_external_function",
-            "B404":"calling_external_function",
-            "B506":"loading_yaml",
-            "B602":"calling_external_function",
-            "B603":"calling_external_function",
-            "B604":"calling_external_function",
-            "B605":"calling_external_function",
-            "B606":"calling_external_function",
-            "B607":"calling_external_function",
-            "B609":"calling_external_function",
-        }
+
         return labels[code]
 
     def __run_labeller(self):
@@ -115,7 +98,7 @@ class Labeller(Thread):
                 continue
             with open(raw_dir + fname) as r_file:
                 data = r_file.readlines()
-                bandit_output = os.popen(bandit_cmd + " " + raw_dir + fname + "2> /dev/null").read().split('\n') # this likely will not work on windows
+                bandit_output = os.popen(bandit_cmd + " " + raw_dir + fname).read().split('\n') # this likely will not work on windows
             for i in range(len(data)):
                 if self.__is_white_space(data[i]):
                     continue
@@ -127,7 +110,7 @@ class Labeller(Thread):
                             break
                     except IndexError:
                         continue
-                self.__write_to_csv(data[i], self.__get_label(vuln_code))
+                self.__write_to_csv(data[i], labels[vuln_code])
             self.stop_lock.acquire()
             if not self.running:
                 done = True

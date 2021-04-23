@@ -1,14 +1,13 @@
-from abc import ABC
+from abc import ABC,abstractmethod
 from ml.status import ModelStatus
 from threading import Lock
 from threading import Thread
-from pandas import read_csv
 
 
 class MLModel(ABC):
 
-    def __init__(self, datafile):
-        self.__dataset = read_csv(dataset)
+    def __init__(self, datafile=None):
+        self.datafile = datafile
         self.__status = ModelStatus.NOT_CREATED
         self.__status_lock = Lock()
         self.__trainingThread = Thread(target=self.__train())

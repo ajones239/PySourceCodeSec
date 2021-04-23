@@ -81,6 +81,35 @@ bandit_cmd = 'python3 -m bandit -t B102,B104,B105,B106,B107,B108,B307,B404,B506,
 
 csv_header = "num_of_strings,cred_vars_present,wordcount,open_present,popen_present,system_present,exec_present,"
 csv_header += "eval_present,input_present,hardcoded_address_present,parses_yaml,is_conditional,num_of_invocations,vulnerability"
+num_of_classes = 6
+num_of_features = 13
+labels = {
+    "none":"none",
+    "B102":"calling_external_function",
+    "B104":"hardcoded_information",
+    "B105":"hardcoded_information",
+    "B106":"hardcoded_information",
+    "B107":"hardcoded_information",
+    "B108":"hardcoded_information",
+    "B307":"calling_external_function",
+    "B404":"calling_external_function",
+    "B506":"loading_yaml",
+    "B602":"calling_external_function",
+    "B603":"calling_external_function",
+    "B604":"calling_external_function",
+    "B605":"calling_external_function",
+    "B606":"calling_external_function",
+    "B607":"calling_external_function",
+    "B609":"calling_external_function",
+}
+classes = [
+    "none",
+    "calling_external_function",
+    "hardcoded_information",
+    "calling_external_function",
+    "loading_yaml",
+    "calling_external_function",
+]   
 
 def num_of_strings(line):
     singles = 0

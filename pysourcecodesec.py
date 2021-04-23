@@ -5,7 +5,7 @@ log_file = 'events.log'
 logging.basicConfig(filename=log_file,
                     format='%(asctime)s | %(levelname)s | %(message)s',
                     datefmt='%H:%M:%S',
-                    level=logging.INFO)
+                    level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 logger.info("Initialized logging")
 
