@@ -2,17 +2,10 @@ import csv
 from sklearn import linear_model
 from numpy import array,delete,ravel
 
-# import numpy as np
-# from scipy import optimize
-# from sklearn.model_selection import train_test_split
-# from sklearn.linear_model import LogisticRegression
-# from sklearn import metrics
-
 from pysourcecodesec import logger
 from ml.status import ModelStatus
 from ml.ml_model import MLModel
-from ml.exception import 
-from labeller.features import num_of_classes
+from ml.ml_exception import MLException
 from labeller.features import num_of_features
 from labeller.features import classes
 
@@ -21,10 +14,18 @@ class LogisticRegressionModel(MLModel):
     def __init__(self, datafile=None):
         super().__init__(datafile)
         self.models = list() # list of ("name", model) tuples
+        self.name = "logistic regression"
 
     def __train(self):
+        '''
+        __train is where the actual creation of the models happens
+        for each class, a binary logistic regression model is created
+        self.models is set to a list of (class as string, linear_model.LogisticRegression objects)
+        '''
+        self.datafile_lock.acquire()
         with open(self.datafile) as f:
             dataset = array(list(csv.reader(f, delimiter=',')))
+        self.datafile_lock.release()
         dataset = delete(dataset,0,0)
         x = delete(dataset,0,1)
         y = delete(dataset, range(num_of_features), 1)
@@ -58,8 +59,11 @@ class LogisticRegressionModel(MLModel):
 
     def load_model(self, st):
         '''
-        load_model takes the summary created by get_model to load an already created model
+        load_model loads an already created model
+        takes the string created by get_model as a parameter
         '''
+        # sets self.models to a list of model parameters of type float
+        #    model parameter format: name, coeficients (one per feature), bias/intercept
         models = st.split(':')
         if models[0] == "0": # loading 0 models, nothing to do
             return
@@ -73,25 +77,28 @@ class LogisticRegressionModel(MLModel):
 
     def classify(self, features):
         '''
-        classify takes a list of features (number type) in the order they appear in the dataset and uses the existing model to classify the data
-        returns a list of (class name, is in class) tuples
-        raises RuntimeError when no models have been loaded or created, or when the model is currently being trained
+        classifies a set of features
+        takes a list of features (number type) in the order they appear in the dataset 
+        returns a list of model labels/classes (type string) that apply to the given features
+        raises MLException when no models have been loaded or created, or when the model is currently being trained
         '''
         if self.get_status() == ModelStatus.NOT_CREATED:
-            raise RuntimeError("Cannot classify. No logistic regression models have been created or loaded.")
+            raise MLException("Cannot classify. No logistic regression models have been created or loaded.")
         elif self.get_status() == ModelStatus.TRAINING:
-            raise RuntimeError("Cannot classify: The logistic regression model is being created.")
+            raise MLException("Cannot classify: The logistic regression model is being created.")
         ret = list()
-        if type(self.models[0]) == type(list()): # case where models were loaded. format is name,coeficients,bias
+        if type(self.models[0]) == type(list()): # case where models were loaded. model format is name,coeficients,bias
             for model in self.models:
                 s = model[len(model) - 1] # bias
                 for i in range(1, len(features) - 1):
                     s += model[i+1] * features[i] # model is i+1 b/c model[0] is its class
-                ret.append((model[0], s > 0.5))
-        else: # case where models were created. format is (class, model object)
+                if s > 0.5:
+                    ret.append(model[0])
+        else: # case where models were created. models are type linear_model.LogisticRegression
             for model in self.models:
                 s = model[1].intercept_
                 for i in range(len(model[1].coef_[0])):
                     s += model[1].coef_[0][i] * features[i]
-                ret.append((model[0], s > 0.5))
+                if s > 0.5:
+                    ret.append(model[0])
         return ret

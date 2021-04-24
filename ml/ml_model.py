@@ -1,8 +1,7 @@
 from abc import ABC,abstractmethod
-from ml.status import ModelStatus
 from threading import Lock
 from threading import Thread
-
+from ml.status import ModelStatus
 
 class MLModel(ABC):
 
@@ -28,7 +27,7 @@ class MLModel(ABC):
 
     def train(self):
         '''
-        train starts a thread to train the model, sets status, and then returns control
+        train starts a thread to train the model and sets status appropriately
         '''
         self.__set_status(ModelStatus.TRAINING)
         self.__trainingThread.start()
@@ -37,9 +36,9 @@ class MLModel(ABC):
     def __train(self):
         pass
 
-    @abstractmethod
-    def get_metrics(self):
-        pass
+    # @abstractmethod
+    # def get_metrics(self):
+    #     pass
 
     @abstractmethod
     def get_model(self):
@@ -49,16 +48,18 @@ class MLModel(ABC):
         pass
 
     @abstractmethod
-    def load_model(self):
+    def load_model(self, st):
         '''
-        load_model takes the summary created by get_model to load an already created model
+        load_model loads an already created model
+        takes the string created by get_model as a parameter
         '''
         pass
 
     @abstractmethod
     def classify(self, features):
         '''
-        classify takes a list of features and uses the existing model to classify the data
+        classify classifies a set of features based on the current model
+        takes a list of features (number type)
         '''
         pass
 
