@@ -8,7 +8,6 @@ from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
 from pysourcecodesec import processed_file
 from pysourcecodesec import raw_lock
-from pysourcecodesec import processed_lock
 from pysourcecodesec import raw_write_file
 from labeller.features import features
 from labeller.features import csv_header
@@ -72,10 +71,8 @@ class Labeller(Thread):
         for feature in features:
             out += str(features[feature](src)) + ","
         out += label + "\n"
-        processed_lock.acquire()
         with open(processed_file, 'a') as f:
             f.write(out)
-        processed_lock.release()
 
     def __is_white_space(self, line):
         if len(line) == 0:
