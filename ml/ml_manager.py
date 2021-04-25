@@ -2,6 +2,7 @@ import os
 from pysourcecodesec import logger
 from pysourcecodesec import processed_file
 from ml.logistic_regression import LogisticRegressionModel
+from ml.ml_model import MLModel
 from ml.ml_exception import MLException
 from labeller.features import features
 
@@ -21,10 +22,10 @@ class MLManager():
         raises MLException if self.algorithms[alg] does not exist
         '''
         try:
-            if self.algorithms[alg] == None:
-                return False
-            else:
+            if isinstance(self.algorithms[alg], MLModel):
                 return True
+            else:
+                return False
         except KeyError:
             raise MLException("There is no algorithm with the name " + alg)
 
@@ -32,7 +33,7 @@ class MLManager():
         '''
         generates a model of using the algorithm passed as a parameter
         '''
-        if self.has_algorithm(alg):
+        if self.__has_algorithm(alg):
             raise MLException("A " + alg + " model already exists")
         logger.info("Creating model using algorithm " + alg)
         self.algorithms[alg] = self.algorithms[alg](processed_file)
@@ -87,7 +88,8 @@ class MLManager():
             featureValues = list()
             for j in range(len(features)):
                 featureValues.append(features[j](lines[i]))
-            ret[i] = self.algorithms[model].classify(featureValues)))
+            ret[i] = self.algorithms[model].classify(featureValues)
+            print(len(featureValues))
         return ret
 
     def analyze_file(self, fname):
@@ -101,5 +103,15 @@ class MLManager():
             ret[a] = self.analyze_file_with_model(fname, a)
         return ret
             
+    def stop(self):
+        x = 1
 
+    def status(self, algorithm):
+        x = 1
 
+    def train(self, algorithm):
+        # if self.__has_algorithm(algorithm):
+        #     logger.info("11")
+        #     return False
+        self.algorithms[algorithm].train()
+        return True

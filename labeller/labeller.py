@@ -1,6 +1,6 @@
 import os
 import time
-import hashlib
+# import hashlib
 from threading import Thread
 from threading import Lock
 

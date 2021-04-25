@@ -22,14 +22,17 @@ class LogisticRegressionModel(MLModel):
         for each class, a binary logistic regression model is created
         self.models is set to a list of (class as string, linear_model.LogisticRegression objects)
         '''
+        logger.info("here1")
         self.datafile_lock.acquire()
         with open(self.datafile) as f:
             dataset = array(list(csv.reader(f, delimiter=',')))
         self.datafile_lock.release()
+        logger.info("here2")
         dataset = delete(dataset,0,0)
         x = delete(dataset,0,1)
         y = delete(dataset, range(num_of_features), 1)
         for c in classes: # does binary logistic regression for each class/label
+            logger.info("Creating logistic regression model for class " + c)
             model = linear_model.LogisticRegression()
             y_t = y.copy()
             for i in range(len(y_t)):

@@ -21,90 +21,87 @@ raw_dir = "data/raw/"
 processed_file = "data/processed.csv"
 raw_write_file = ""
 raw_lock = Lock()
-processed_lock = Lock()
 
-from labeller.labeller import *
 from fetch_tool.fetch_tool import *
-
+from labeller.labeller import *
+from ml.ml_manager import *
 
 def main():
     sample_fetcher = FetchTool()
     sample_labeller = Labeller()
+    ml_manager = MLManager()
     cmds = {
         "1": fetch_tool_prompt,
         "2": labeller_prompt,
+        "3": ml_prompt
     }
     args = {
         "1": sample_fetcher,
-        "2": sample_labeller
+        "2": sample_labeller,
+        "3": ml_manager
     }
     while True:
-        main_prompt()
+        print("What would you like to manage?")
+        print("(1) sample fetch tool")
+        print("(2) sample labeller")
+        print("(3) machine learning models")
+        print("(q) quit")
         cmd = input("cmd: ")
+        cmd = cmd.strip()
         if cmd == "q":
             print("quiting...")
             sample_fetcher.stop()
+            sample_labeller.stop()
+            ml_manager.stop()
             break
         try:
             cmds[cmd](args[cmd])
         except KeyError:
             print("Sorry, {} does not correspond to a valid command.\n".format(cmd))
 
-        '''
-        if cmd == "f":
-            sample_fetcher.start()
-        elif cmd == "s":
-            sample_fetcher.stop()
-        '''
-
-
-def update_fetch_tool_search_term(fetcher):
-    new_term = input("Enter new search term: ")
-    fetcher.set_search_term(new_term)
-    
     
 def fetch_tool_prompt(fetcher):
+    cmds = {
+        "1": fetcher.start,
+        "2": fetcher.stop,
+        "3": fetcher.status,
+        "4": lambda : fetcher.set_search_term(input("Enter new search term: ")),
+        "5": lambda : print("Current search term: " + fetcher.search_term)
+    }
     while True:
         print("\nSample Fetch Tool")
         print("(1) start")
         print("(2) stop")
         print("(3) status")
         print("(4) update search term")
-        print("(5) back")
-        cmds = {
-            "1": fetcher.start,
-            "2": fetcher.stop,
-            "3": fetcher.status,
-            "4": update_fetch_tool_search_term
-        }
+        print("(5) print current search term")
+        print("(6) back")
         try:
             cmd = input("cmd: ")
             cmd = cmd.strip()
-            if cmd == "4":
-                cmds[cmd](fetcher)
-            else:
-                cmds[cmd]()
+            cmds[cmd]()
         except KeyError:
-            if cmd == "b":
+            if cmd == "6":
                 break
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
     print()
 
 
 def labeller_prompt(labeller):
+    cmds = {
+        "1": labeller.start,
+        "2": labeller.stop,
+        "3": labeller.status
+    }
     while True:
         print("\nSample Labeller")
         print("(1) start")
         print("(2) stop")
         print("(3) status")
         print("(4) back")
-        cmds = {
-            "1": labeller.start,
-            "2": labeller.stop,
-            "3": labeller.status
-        }
         try:
             cmd = input("cmd: ")
+            cmd = cmd.strip()
             cmds[cmd]()
         except KeyError:
             if cmd == "4":
@@ -113,20 +110,55 @@ def labeller_prompt(labeller):
     print()
             
 
-#def machine_learning_prompt():
-#    print("\nWhich model would you like to manage?")
-#    print("(1) logistic regression")
-#    cmds = {
-#        "1": 
-#    }
+def algorithm_prompt(ml_manager, algorithm):
+    cmds = {
+        "1": ml_manager.status,
+        "2": ml_manager.create_model,
+        "3": ml_manager.train,
+        "4": lambda manager : manager.analyze_file_with_model(input("Enter filename: ").strip(), algorithm)
+    }
+    while True:
+        print("\n{} model".format(algorithm))
+        print("(1) status")
+        print("(2) create model")
+        print("(3) train")
+        print("(4) analyze (file or directory")
+        print("(5) back")
+        try:
+            cmd = input("cmd: ")
+            cmd = cmd.strip()
+            if cmd == "1" or cmd == "2" or cmd == "3":
+                cmds[cmd](algorithm)
+            else:
+                cmds[cmd](ml_manager)
+        except KeyError:
+            if cmd == "5":
+                break
+            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+
+
+def ml_prompt(ml_manager):
+    cmds = {
+        "1": algorithm_prompt
+    }
+    while True:
+        print("\nWhich model would you like to manage?")
+        print("(1) logistic regression")
+        print("(2) back")
+        try:
+            cmd = input("cmd: ")
+            cmd = cmd.strip()
+            cmds[cmd](ml_manager, algorithms[int(cmd) - 1])
+        except KeyError:
+            if cmd == "2":
+                break
+            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+        except ValueError:
+             print("Sorry, {} does not correspond to a valid command.".format(cmd))           
+    print()
+ 
 
  
-def main_prompt():
-    print("What would you like to manage?")
-    print("(1) sample fetch tool")
-    print("(2) sample labeller")
-    print("(3) machine learning models")
-    print("(q) quit")
 
 if __name__ == '__main__':
     main()

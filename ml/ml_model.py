@@ -3,13 +3,14 @@ from threading import Lock
 from threading import Thread
 from ml.status import ModelStatus
 
-class MLModel(ABC):
+# class MLModel(ABC):
+class MLModel():
 
     def __init__(self, datafile=None):
         self.datafile = datafile
         self.__status = ModelStatus.NOT_CREATED
         self.__status_lock = Lock()
-        self.__trainingThread = Thread(target=self.__train())
+        self.__trainingThread = Thread(target=self.__train)
 
     def get_status(self):
         '''
@@ -32,7 +33,7 @@ class MLModel(ABC):
         self.__set_status(ModelStatus.TRAINING)
         self.__trainingThread.start()
 
-    @abstractmethod
+    # @abstractmethod
     def __train(self):
         pass
 
@@ -40,14 +41,14 @@ class MLModel(ABC):
     # def get_metrics(self):
     #     pass
 
-    @abstractmethod
+    # @abstractmethod
     def get_model(self):
         '''
         get_model should return a file-writable summary of the model/model parameters
         '''
         pass
 
-    @abstractmethod
+    # @abstractmethod
     def load_model(self, st):
         '''
         load_model loads an already created model
@@ -55,7 +56,7 @@ class MLModel(ABC):
         '''
         pass
 
-    @abstractmethod
+    # @abstractmethod
     def classify(self, features):
         '''
         classify classifies a set of features based on the current model
