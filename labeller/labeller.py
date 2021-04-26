@@ -58,6 +58,9 @@ class Labeller():
             print("Sample labeller is stopped")
 
     def __select_file(self):
+        '''
+        Selects a given file from a project to scan for vulnerabilities.
+        '''
         var = None
         raw_lock.acquire()
         for f in os.listdir(raw_dir):
@@ -69,6 +72,9 @@ class Labeller():
         return var
 
     def __write_to_csv(self, src, label):
+        '''
+        Writes the labeled vulnerabilities to a targeted CSV file for review and analysis.
+        '''
         out = ""
         for feature in features:
             out += str(features[feature](src)) + ","
@@ -85,6 +91,10 @@ class Labeller():
         return True
 
     def __run_labeller(self):
+        '''
+        Takes the given files and labels any vulnerabilities found inside, based on the list of 
+        Bandit test modules. Uploads the results to a CSV via __write_to_csv.
+        '''
         done = False
         while not done:
             fname = self.__select_file()
