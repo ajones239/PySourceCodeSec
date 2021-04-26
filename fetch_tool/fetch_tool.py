@@ -1,9 +1,11 @@
 import os
 import base64
 import requests
+import threading
 from github import Github
-from threading import Thread
 from threading import Lock
+
+
 
 from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
@@ -24,7 +26,7 @@ def license_is_MIT(repo):
     return mit_txt == "MIT"
  
 
-class FetchTool(Thread):
+class FetchTool():
 
     def __init__(self):
         self.tname = "sample fetch tool"
@@ -32,7 +34,8 @@ class FetchTool(Thread):
         self.stop_lock = Lock()
         self.running = False
         self.search_term = default_search_term
-        super().__init__(target=self.__collect_python_files)
+        self.fetch_thread = threading.Thread(target=self.__collect_python_files)
+        
 
 
     def start(self):
@@ -41,7 +44,7 @@ class FetchTool(Thread):
             return
         logger.info("Starting sample fetch tool...")
         self.running = True
-        super().start()
+        self.fetch_thread.start()
         logger.info("Sample fetch tool successfully started.")
 
 
@@ -50,8 +53,9 @@ class FetchTool(Thread):
         self.stop_lock.acquire()
         self.running = False
         self.stop_lock.release()
-        if self.is_alive():
-            self.join()
+        if self.fetch_thread.is_alive():
+            self.fetch_thread.join()
+            self.fetch_thread = threading.Thread(target=self.__collect_python_files) #Reinitialize thread
         logger.info("Sample fetch tool successfully stopped.")
     
 
@@ -66,11 +70,12 @@ class FetchTool(Thread):
         logger.info("Updating fetch tool search term from {} to {}".format(self.search_term, new_search_term))
         restart = False
         if self.running:
-            self.stop()
+            self.fetch_thread.stop()
+            self.fetch_thread = threading.Thread(target=self.__collect_python_files)
             restart = True
         self.search_term = new_search_term
         if restart:
-            self.start()
+            self.fetch_thread.start()
 
 
     # This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from

@@ -1,6 +1,7 @@
 import os
 import time
 # import hashlib
+import threading
 from threading import Thread
 from threading import Lock
 
@@ -14,7 +15,7 @@ from labeller.features import csv_header
 from labeller.features import bandit_cmd
 from labeller.features import labels
 
-class Labeller(Thread):
+class Labeller():
 
     def __init__(self):
         self.processed_files = set()
@@ -30,13 +31,13 @@ class Labeller(Thread):
                 if content.split('\n')[0] != csv_header:
                     f.seek(0,0)
                     f.write(csv_header + '\n' + content)
-        super().__init__(target=self.__run_labeller)
+        self.label_thread = threading.Thread(target=self.__run_labeller)
 
     
     def start(self):
         logger.info("Starting labeller...")
         self.running = True
-        super().start()
+        self.label_thread.start()
         logger.info("Labeller successfully started.")
 
 
@@ -45,7 +46,8 @@ class Labeller(Thread):
         self.stop_lock.acquire()
         self.running = False
         self.stop_lock.release()
-        self.join()
+        self.label_thread.join()
+        self.label_thread = threading.Thread(target=self.__run_labeller) #Reinitialize thread
         logger.info("Labeller successfully stopped.")
 
 
@@ -90,9 +92,12 @@ class Labeller(Thread):
                 time.sleep(2) # if no files in data/raw are unprocessed, wait and try again
                 continue
             with open(raw_dir + fname) as r_file:
-                data = r_file.readlines()
+                try:
+                    data = r_file.readlines()
+                except:
+                    continue
                 bandit_output = os.popen(bandit_cmd + " " + raw_dir + fname).read().split('\n') # this likely will not work on windows
-            for i in range(len(data)):                                                          # because raw_dir likely uses '/' over '\'
+            for i in range(len(data)):                                                              # because raw_dir likely uses '/' over '\'
                 if self.__is_white_space(data[i]):
                     continue
                 vuln_code = "none"
