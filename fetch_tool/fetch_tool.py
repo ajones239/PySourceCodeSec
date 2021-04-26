@@ -11,6 +11,7 @@ from pysourcecodesec import github_credentials
 from pysourcecodesec import raw_lock
 from pysourcecodesec import raw_write_file
 
+from github import RateLimitExceededException
 
 default_search_term = "python"
 
@@ -124,25 +125,27 @@ class FetchTool(Thread):
     # Iterates over all repos found with this search, or until API access times out
     def __collect_python_files(self):
         done = False
-        for repo in self.githubAPI.search_repositories(self.search_term):
-            if license_is_MIT(repo):
-                for content in repo.get_contents(""):
+        try:
+            for repo in self.githubAPI.search_repositories(self.search_term):
+                if license_is_MIT(repo):
+                    for content in repo.get_contents(""):
+                        if done:
+                            break
+                        split_content = content.name.split(".")
+                        if split_content[len(split_content) - 1] == "py":
+                            req = requests.get(content.download_url)
+                            fname = raw_dir + repo.name + "_" + content.name
+                            raw_lock.acquire()
+                            raw_write_file = fname
+                            raw_lock.release()
+                            if not os.path.isfile(fname):
+                                with open(fname, 'wb') as f:
+                                    f.write(req.content)
+                        self.stop_lock.acquire()
+                        if not self.running:
+                            done = True
+                        self.stop_lock.release()
                     if done:
                         break
-                    split_content = content.name.split(".")
-                    if split_content[len(split_content) - 1] == "py":
-                        req = requests.get(content.download_url)
-                        fname = raw_dir + repo.name + "_" + content.name
-                        raw_lock.acquire()
-                        raw_write_file = fname
-                        raw_lock.release()
-                        if not os.path.isfile(fname):
-                            with open(fname, 'wb') as f:
-                                f.write(req.content)
-                    self.stop_lock.acquire()
-                    if not self.running:
-                        done = True
-                    self.stop_lock.release()
-                if done:
-                    break
-
+        except RateLimitExceededException:
+            self.stop()
