@@ -37,6 +37,7 @@ class MLManager():
             raise MLException("A " + alg + " model already exists")
         logger.info("Creating model using algorithm " + alg)
         self.algorithms[alg] = self.algorithms[alg](processed_file)
+        logger.info("Beginning training")
         self.algorithms[alg].train()
 
     def load_models(self):
@@ -89,7 +90,9 @@ class MLManager():
             for j in range(len(features)):
                 featureValues.append(features[j](lines[i]))
             ret[i] = self.algorithms[model].classify(featureValues)
-            print(len(featureValues))
+            print(ret[i])
+            print(i)
+            print(featureValues)
         return ret
 
     def analyze_file(self, fname):

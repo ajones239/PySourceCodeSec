@@ -1,6 +1,7 @@
 import csv
 from sklearn import linear_model
 from numpy import array,delete,ravel
+from threading import Thread, Lock
 
 from pysourcecodesec import logger
 from ml.status import ModelStatus
@@ -12,9 +13,26 @@ from labeller.features import classes
 class LogisticRegressionModel(MLModel):
 
     def __init__(self, datafile=None):
-        super().__init__(datafile)
+        self.datafile = datafile
         self.models = list() # list of ("name", model) tuples
         self.name = "logistic regression"
+        self.__status = ModelStatus.NOT_CREATED
+        self.__status_lock = Lock()
+        self.__trainingThread = Thread(target=self.__train)
+
+    def get_status(self):
+        '''
+        get_status returns the current status of the model
+        '''
+        self.__status_lock.acquire()
+        x = self.__status
+        self.__status_lock.release()
+        return x
+    
+    def __set_status(self, status):
+        self.__status_lock.acquire()
+        self.__status = status
+        self.__status_lock.release()
 
     def __train(self):
         '''
@@ -22,27 +40,47 @@ class LogisticRegressionModel(MLModel):
         for each class, a binary logistic regression model is created
         self.models is set to a list of (class as string, linear_model.LogisticRegression objects)
         '''
-        logger.info("here1")
-        self.datafile_lock.acquire()
+        logger.info("opening file")
         with open(self.datafile) as f:
             dataset = array(list(csv.reader(f, delimiter=',')))
-        self.datafile_lock.release()
-        logger.info("here2")
+        logger.info("1")
         dataset = delete(dataset,0,0)
+        logger.info("2")
         x = delete(dataset,0,1)
+        logger.info("3")
         y = delete(dataset, range(num_of_features), 1)
+        logger.info("4")
+        del(dataset)
+        for i in range(len(x)):
+            for j in range(len(x[0])):
+                try:
+                    t = float(x[i][j])
+                except ValueError:
+                    x[i][j] = '0'
         for c in classes: # does binary logistic regression for each class/label
+            if c == "none" or c == "loading_yaml":
+                continue
             logger.info("Creating logistic regression model for class " + c)
             model = linear_model.LogisticRegression()
             y_t = y.copy()
+            logger.info("copied")
             for i in range(len(y_t)):
                 if y_t[i] == c:
-                    y_t[i] = 1
+                    y_t[i] = "1"
                 else:
-                    y_t[i] = 0
+                    y_t[i] = "0"
+            logger.info("formatted y_t")
             model.fit(x, ravel(y_t))
             self.models.append((c, model))
             self.__set_status(ModelStatus.COMPLETED)
+
+    def train(self):
+        '''
+        train starts a thread to train the model and sets status appropriately
+        '''
+        self.__set_status(ModelStatus.TRAINING)
+        logger.info("training started")
+        self.__trainingThread.start()
 
     def get_model(self):
         '''

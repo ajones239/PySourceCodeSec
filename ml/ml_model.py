@@ -10,7 +10,7 @@ class MLModel():
         self.datafile = datafile
         self.__status = ModelStatus.NOT_CREATED
         self.__status_lock = Lock()
-        self.__trainingThread = Thread(target=self.__train)
+        # self.__trainingThread = Thread(target=self.__train)
 
     def get_status(self):
         '''
@@ -30,8 +30,7 @@ class MLModel():
         '''
         train starts a thread to train the model and sets status appropriately
         '''
-        self.__set_status(ModelStatus.TRAINING)
-        self.__trainingThread.start()
+        pass
 
     # @abstractmethod
     def __train(self):
