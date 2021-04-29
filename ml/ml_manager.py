@@ -107,7 +107,17 @@ class MLManager():
         x = 1
 
     def status(self, algorithm):
-        x = 1
+        #x = 1
+        if self.__has_algorithm(algorithm):
+            status = self.algorithms[algorithm].get_status()
+            if status == 0:
+                print(algorithm + "Algorithm is not created")
+            elif status == 1:
+                print(algorithm + "Algorithm is training")
+            elif status == 2:
+                print(algorithm + "Algorithm is Completed")
+        else:
+            print("There is no Algorithm")
 
     def train(self, algorithm):
         # if self.__has_algorithm(algorithm):
