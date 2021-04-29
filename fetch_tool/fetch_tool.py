@@ -1,9 +1,11 @@
 import os
 import base64
 import requests
+import threading
 from github import Github
-from threading import Thread
 from threading import Lock
+
+
 
 from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
@@ -14,9 +16,12 @@ from pysourcecodesec import raw_write_file
 
 default_search_term = "python"
 
-# Given a Github.Repository.Repository, returns True if the license is MIT, False otherwise
-# MIT is one of the most permissive licenses, so there are no requirements using their code
+# 
 def license_is_MIT(repo):
+    '''
+    Given a Github.Repository.Repository, returns True if the license is MIT, False otherwise
+    MIT is one of the most permissive licenses, so there are no requirements using their code
+    '''
     try:
         mit_txt = base64.b64decode(repo.get_license().content.encode()).decode()[:3]
     except:
@@ -24,15 +29,20 @@ def license_is_MIT(repo):
     return mit_txt == "MIT"
  
 
-class FetchTool(Thread):
+class FetchTool():
 
     def __init__(self):
+        '''
+        returns true self.algorithms[alg] is not None
+        raises MLException if self.algorithms[alg] does not exist
+        '''
         self.tname = "sample fetch tool"
         self.__load_github_credentials()
         self.stop_lock = Lock()
         self.running = False
         self.search_term = default_search_term
-        super().__init__(target=self.__collect_python_files)
+        self.fetch_thread = threading.Thread(target=self.__collect_python_files)
+        
 
 
     def start(self):
@@ -41,7 +51,7 @@ class FetchTool(Thread):
             return
         logger.info("Starting sample fetch tool...")
         self.running = True
-        super().start()
+        self.fetch_thread.start()
         logger.info("Sample fetch tool successfully started.")
 
 
@@ -50,8 +60,9 @@ class FetchTool(Thread):
         self.stop_lock.acquire()
         self.running = False
         self.stop_lock.release()
-        if self.is_alive():
-            self.join()
+        if self.fetch_thread.is_alive():
+            self.fetch_thread.join()
+            self.fetch_thread = threading.Thread(target=self.__collect_python_files) #Reinitialize thread
         logger.info("Sample fetch tool successfully stopped.")
     
 
@@ -66,23 +77,26 @@ class FetchTool(Thread):
         logger.info("Updating fetch tool search term from {} to {}".format(self.search_term, new_search_term))
         restart = False
         if self.running:
-            self.stop()
+            self.fetch_thread.stop()
+            self.fetch_thread = threading.Thread(target=self.__collect_python_files)
             restart = True
         self.search_term = new_search_term
         if restart:
-            self.start()
+            self.fetch_thread.start()
 
 
-    # This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from
-    # creds.conf, it then checks for the file ~/.git-credentials. Neither exist, GitHub API calls are unauthenticated which 
-    # result in a limited number of allowed API calls per IP address.
-    #
-    # Each line in '~/.git-credentials' contains credentials to a website for hosting git repos (GitHub,
-    # BitBucket, etc). 
-    # Format: 'https://<user>:<password>@<website>'
-    # Note: spaces in password are replaced with '%20'. Other specials characters *may* be subsituted by 
-    # a special escape sequence as well.
+    # 
     def __load_github_credentials(self):
+        '''
+        This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from
+        creds.conf, it then checks for the file ~/.git-credentials. Neither exist, GitHub API calls are unauthenticated which 
+        result in a limited number of allowed API calls per IP address.
+        Each line in '~/.git-credentials' contains credentials to a website for hosting git repos (GitHub,
+        BitBucket, etc). 
+        Format: 'https://<user>:<password>@<website>'
+        Note: spaces in password are replaced with '%20'. Other specials characters *may* be subsituted by 
+        a special escape sequence as well.
+        '''
         user = None
         pwd = None
         # try loading from creds.conf
@@ -120,9 +134,11 @@ class FetchTool(Thread):
         self.githubAPI = Github(user,pwd)
 
 
-    # Searches GitHub for 'python' and saves all files with a MIT license to data/raw
-    # Iterates over all repos found with this search, or until API access times out
     def __collect_python_files(self):
+        '''
+        Searches GitHub for 'python' and saves all files with a MIT license to data/raw
+        Iterates over all repos found with this search, or until API access times out
+        '''
         done = False
         for repo in self.githubAPI.search_repositories(self.search_term):
             if license_is_MIT(repo):

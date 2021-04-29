@@ -27,6 +27,9 @@ from labeller.labeller import *
 from ml.ml_manager import *
 
 def main():
+    '''
+    Displays the main menu to select a given tool for use.
+    '''
     sample_fetcher = FetchTool()
     sample_labeller = Labeller()
     ml_manager = MLManager()
@@ -61,6 +64,9 @@ def main():
 
     
 def fetch_tool_prompt(fetcher):
+    '''
+    Shows commands for use with the project fetch tool.
+    '''
     cmds = {
         "1": fetcher.start,
         "2": fetcher.stop,
@@ -88,6 +94,9 @@ def fetch_tool_prompt(fetcher):
 
 
 def labeller_prompt(labeller):
+    '''
+    Shows commands for use with the labeller tool.
+    '''
     cmds = {
         "1": labeller.start,
         "2": labeller.stop,
@@ -111,6 +120,9 @@ def labeller_prompt(labeller):
             
 
 def algorithm_prompt(ml_manager, algorithm):
+    '''
+    Shows commands for use with the ML model training tool.
+    '''
     cmds = {
         "1": ml_manager.status,
         "2": ml_manager.create_model,
@@ -138,6 +150,9 @@ def algorithm_prompt(ml_manager, algorithm):
 
 
 def ml_prompt(ml_manager):
+    '''
+    Commands for managing machine learning models.
+    '''
     cmds = {
         "1": algorithm_prompt
     }
