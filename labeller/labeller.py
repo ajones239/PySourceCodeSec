@@ -46,8 +46,9 @@ class Labeller():
         self.stop_lock.acquire()
         self.running = False
         self.stop_lock.release()
-        self.label_thread.join()
-        self.label_thread = threading.Thread(target=self.__run_labeller) #Reinitialize thread
+        if self.label_thread.is_alive():
+            self.label_thread.join()
+            self.label_thread = threading.Thread(target=self.__run_labeller) #Reinitialize thread
         logger.info("Labeller successfully stopped.")
 
 
