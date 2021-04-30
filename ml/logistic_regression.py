@@ -13,6 +13,7 @@ from labeller.features import classes
 class LogisticRegressionModel(MLModel):
 
     def __init__(self, datafile=None):
+        super().__init__()
         self.datafile = datafile
         self.models = list() # list of ("name", model) tuples
         self.name = "logistic regression"

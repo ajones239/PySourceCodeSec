@@ -3,28 +3,20 @@ from threading import Lock
 from threading import Thread
 from ml.status import ModelStatus
 
-# class MLModel(ABC):
-class MLModel():
+class MLModel(ABC):
+# class MLModel():
 
-    def __init__(self, datafile=None):
-        self.datafile = datafile
-        self.__status = ModelStatus.NOT_CREATED
-        self.__status_lock = Lock()
-        # self.__trainingThread = Thread(target=self.__train)
+    def __init__(self):
+        super().__init__()
 
     def get_status(self):
         '''
         get_status returns the current status of the model
         '''
-        self.__status_lock.acquire()
-        x = self.__status
-        self.__status_lock.release()
-        return x
+        pass
     
     def __set_status(self, status):
-        self.__status_lock.acquire()
-        self.__status = status
-        self.__status_lock.release()
+        pass
 
     def train(self):
         '''
