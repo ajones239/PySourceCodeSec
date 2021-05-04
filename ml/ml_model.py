@@ -64,3 +64,8 @@ class MLModel():
         '''
         pass
 
+    def stop_train(self):
+        '''
+        stop a thread that is in training and set the status to not complete
+        '''
+        pass

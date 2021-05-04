@@ -104,8 +104,10 @@ class MLManager():
         return ret
             
     def stop(self):
-        #x = 1
         
+        if self.__has_algorithm(algorithms):
+            if self.algorithms[algorithm].get_status() == 1:
+                self.algorithms[algorithm].stop_train(self)
         
         
     def status(self, algorithm):

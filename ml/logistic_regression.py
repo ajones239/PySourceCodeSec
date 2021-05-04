@@ -105,3 +105,12 @@ class LogisticRegressionModel(MLModel):
                 if s > 0.5:
                     ret.append(model[0])
         return ret
+        
+    def stop(self):
+        done = False
+        if self.get_status() == ModelStatus.TRAINING:
+            
+    #testing stop function
+    def stop_train(self):
+        self.__set_status(ModelStatus.NOT_CREATED)
+        self.__trainingThread.stop()
