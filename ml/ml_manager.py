@@ -104,10 +104,13 @@ class MLManager():
         return ret
             
     def stop(self):
-        x = 1
-
-    def status(self, algorithm):
         #x = 1
+        
+        
+        
+    def status(self, algorithm):
+    #checkes the status if the algorithm is running or not
+    
         if self.__has_algorithm(algorithm):
             status = self.algorithms[algorithm].get_status()
             if status == 0:
