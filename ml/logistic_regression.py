@@ -59,21 +59,26 @@ class LogisticRegressionModel(MLModel):
                 except ValueError:
                     x[i][j] = '0'
         for c in classes: # does binary logistic regression for each class/label
-            if c == "none" or c == "loading_yaml":
+            if c == "none":
                 continue
             logger.info("Creating logistic regression model for class " + c)
             model = linear_model.LogisticRegression()
             y_t = y.copy()
             logger.info("copied")
+            allZeroes = True
             for i in range(len(y_t)):
                 if y_t[i] == c:
                     y_t[i] = "1"
+                    allZeroes = False
                 else:
                     y_t[i] = "0"
             logger.info("formatted y_t")
-            model.fit(x, ravel(y_t))
-            self.models.append((c, model))
-            self.__set_status(ModelStatus.COMPLETED)
+            if not allZeroes:
+                model.fit(x, ravel(y_t))
+                self.models.append((c, model))
+                self.__set_status(ModelStatus.COMPLETED)
+            else:
+                logger.error("No data points in class " + c)
 
     def train(self):
         '''

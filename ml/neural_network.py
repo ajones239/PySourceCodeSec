@@ -119,7 +119,7 @@ class KerasNeuralNetworkModel(MLModel):
             raise MLException("Cannot classify: The neural network is being created.")
         ret = list()
         for model in self.models:
-            predictions = model.predict(np.array([features]))
-            ret.append(predictions[0])
+            predictions = model[1].predict(numpy.array([features]))
+            ret.append((model[0], predictions[0]))
         return ret
 
