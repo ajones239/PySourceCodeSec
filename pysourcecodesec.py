@@ -126,25 +126,23 @@ def algorithm_prompt(ml_manager, algorithm):
     cmds = {
         "1": ml_manager.status,
         "2": ml_manager.create_model,
-        "3": ml_manager.train,
-        "4": lambda manager : manager.analyze_file_with_model(input("Enter filename: ").strip(), algorithm)
+        "3": lambda manager : manager.analyze_file_with_model(input("Enter filename: ").strip(), algorithm)
     }
     while True:
         print("\n{} model".format(algorithm))
         print("(1) status")
         print("(2) create model")
-        print("(3) train")
-        print("(4) analyze (file or directory")
-        print("(5) back")
+        print("(3) analyze (file or directory")
+        print("(4) back")
         try:
             cmd = input("cmd: ")
             cmd = cmd.strip()
-            if cmd == "1" or cmd == "2" or cmd == "3":
+            if cmd == "1" or cmd == "2":
                 cmds[cmd](algorithm)
             else:
                 cmds[cmd](ml_manager)
         except KeyError:
-            if cmd == "5":
+            if cmd == "4":
                 break
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
 
@@ -154,18 +152,20 @@ def ml_prompt(ml_manager):
     Commands for managing machine learning models.
     '''
     cmds = {
-        "1": algorithm_prompt
+        "1": algorithm_prompt,
+        "2": algorithm_prompt
     }
     while True:
         print("\nWhich model would you like to manage?")
         print("(1) logistic regression")
-        print("(2) back")
+        print("(2) Keras neural network")
+        print("(3) back")
         try:
             cmd = input("cmd: ")
             cmd = cmd.strip()
             cmds[cmd](ml_manager, algorithms[int(cmd) - 1])
         except KeyError:
-            if cmd == "2":
+            if cmd == "3":
                 break
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
         except ValueError:

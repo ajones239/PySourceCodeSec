@@ -1,19 +1,22 @@
+from ml.status import ModelStatus
 import os
 from pysourcecodesec import logger
 from pysourcecodesec import processed_file
 from ml.logistic_regression import LogisticRegressionModel
+from ml.neural_network import KerasNeuralNetworkModel
 from ml.ml_model import MLModel
 from ml.ml_exception import MLException
 from labeller.features import features
 
 saveFile = ".ml_algorithms.save"
-algorithms = ["logistic regression"]
+algorithms = ["logistic regression", "Keras neural network"]
 
 class MLManager():
     
     def __init__(self):
         self.algorithms = {
-            "logistic regression":LogisticRegressionModel
+            "logistic regression":LogisticRegressionModel,
+            "Keras neural network":KerasNeuralNetworkModel
         }
 
     def __has_algorithm(self, alg):
@@ -34,11 +37,14 @@ class MLManager():
         generates a model of using the algorithm passed as a parameter
         '''
         if self.__has_algorithm(alg):
-            raise MLException("A " + alg + " model already exists")
-        logger.info("Creating model using algorithm " + alg)
-        self.algorithms[alg] = self.algorithms[alg](processed_file)
-        logger.info("Beginning training")
-        self.algorithms[alg].train()
+            err = alg + " model already exists"
+            logger.error(err)
+            print(err)
+        else:
+            logger.info("Creating model using algorithm " + alg)
+            self.algorithms[alg] = self.algorithms[alg](processed_file)
+            logger.info("Beginning training")
+            self.algorithms[alg].train()
 
     def load_models(self):
         '''
@@ -113,18 +119,12 @@ class MLManager():
         #x = 1
         if self.__has_algorithm(algorithm):
             status = self.algorithms[algorithm].get_status()
-            if status == 0:
-                print(algorithm + "Algorithm is not created")
-            elif status == 1:
-                print(algorithm + "Algorithm is training")
-            elif status == 2:
-                print(algorithm + "Algorithm is Completed")
+            if status == ModelStatus.NOT_CREATED:
+                print(algorithm + " model is not created")
+            elif status == ModelStatus.TRAINING:
+                print(algorithm + " model is training")
+            elif status == ModelStatus.COMPLETED:
+                print(algorithm + " model is completed")
         else:
-            print("There is no Algorithm")
+            print("There is no " + algorithm + " model")
 
-    def train(self, algorithm):
-        # if self.__has_algorithm(algorithm):
-        #     logger.info("11")
-        #     return False
-        self.algorithms[algorithm].train()
-        return True

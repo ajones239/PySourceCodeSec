@@ -1,3 +1,10 @@
+import pandas
+import numpy
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn import metrics
+from sklearn.model_selection import train_test_split
+from threading import Thread, Lock
 
 from pysourcecodesec import logger
 from ml.status import ModelStatus
@@ -6,13 +13,13 @@ from ml.ml_exception import MLException
 from labeller.features import num_of_features
 from labeller.features import classes
 
-class LogisticRegressionModel(MLModel):
+class KerasNeuralNetworkModel(MLModel):
 
     def __init__(self, datafile=None):
         super().__init__()
         self.datafile = datafile
         self.models = list()
-        self.name = "neural network"
+        self.name = "Keras neural network"
         self.__status = ModelStatus.NOT_CREATED
         self.__status_lock = Lock()
         self.__trainingThread = Thread(target=self.__train)
@@ -37,7 +44,7 @@ class LogisticRegressionModel(MLModel):
         for each class, a binary logistic regression model is created
         self.models is set to a list of (class as string, linear_model.LogisticRegression objects)
         '''
-        dataset = pandas.read_csv('/home/user/dev/PySourceCodeSec/data/processed_small.csv', header=0).values
+        dataset = pandas.read_csv(self.datafile, header=0).values
         X = dataset[:,0:13].astype(float)
         Y = dataset[:, 13]
         for c in range(len(classes)):
@@ -49,14 +56,14 @@ class LogisticRegressionModel(MLModel):
                     Y_t[i] = 1
                 else:
                     Y_t[i] = 0
-            Y_t = np.ravel(Y_t.astype(float))
+            Y_t = numpy.ravel(Y_t.astype(float))
             model = Sequential()
             model.add(Dense(20, input_dim=13, activation='relu'))
             model.add(Dense(13, activation='relu'))
             model.add(Dense(1, activation='sigmoid'))
             model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-            model.fit(X, Y_t, epochs=500, batch_size=10)
-            models.append((classes[c], model))
+            model.fit(X, Y_t, epochs=500, batch_size=10, verbose=0)
+            self.models.append((classes[c], model))
 
             self.__set_status(ModelStatus.COMPLETED)
 
@@ -115,18 +122,4 @@ class LogisticRegressionModel(MLModel):
             predictions = model.predict(np.array([features]))
             ret.append(predictions[0])
         return ret
-
-
-        # _, accuracy = model.evaluate(X,Y)
-        # print('Accuracy: %.2f' % (accuracy*100))
-        # # t = np.array([[4,0,5,0,0,0,1,0,0,0,0,0,1]])
-        # # p = np.array([1])
-        # predictions = model.predict(X)
-        # s = 0
-        # for i in range(len(X)):
-        #     if int(predictions[i]) == Y[i]:
-        #         s += 1
-        #     # print('%s => %d (expected %d)' % (X[i].tolist(), predictions[i], Y[i]))
-        # print(s/len(X))
-        # self.models.append((c, model))
 
