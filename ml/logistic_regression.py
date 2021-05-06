@@ -14,35 +14,35 @@ class LogisticRegressionModel(MLModel):
 
     def __init__(self, datafile=None):
         super().__init__()
-        self.datafile = datafile
-        self.models = list() # list of ("name", model) tuples
         self.name = "logistic regression"
-        self.__status = ModelStatus.NOT_CREATED
-        self.__status_lock = Lock()
-        self.__trainingThread = Thread(target=self.__train)
+        self._datafile = datafile
+        self._models = list() # list of ("name", model) tuples
+        self._status = ModelStatus.NOT_CREATED
+        self._status_lock = Lock()
+        self._trainingThread = Thread(target=self._train)
 
     def get_status(self):
         '''
         get_status returns the current status of the model
         '''
-        self.__status_lock.acquire()
-        x = self.__status
-        self.__status_lock.release()
+        self._status_lock.acquire()
+        x = self._status
+        self._status_lock.release()
         return x
     
-    def __set_status(self, status):
-        self.__status_lock.acquire()
-        self.__status = status
-        self.__status_lock.release()
+    def _set_status(self, status):
+        self._status_lock.acquire()
+        self._status = status
+        self._status_lock.release()
 
-    def __train(self):
+    def _train(self):
         '''
-        __train is where the actual creation of the models happens
+        _train is where the actual creation of the models happens
         for each class, a binary logistic regression model is created
-        self.models is set to a list of (class as string, linear_model.LogisticRegression objects)
+        self._models is set to a list of (class as string, linear_model.LogisticRegression objects)
         '''
         logger.info("opening file")
-        with open(self.datafile) as f:
+        with open(self._datafile) as f:
             dataset = array(list(csv.reader(f, delimiter=',')))
         logger.info("1")
         dataset = delete(dataset,0,0)
@@ -75,8 +75,8 @@ class LogisticRegressionModel(MLModel):
             logger.info("formatted y_t")
             if not allZeroes:
                 model.fit(x, ravel(y_t))
-                self.models.append((c, model))
-                self.__set_status(ModelStatus.COMPLETED)
+                self._models.append((c, model))
+                self._set_status(ModelStatus.COMPLETED)
             else:
                 logger.error("No data points in class " + c)
 
@@ -84,9 +84,9 @@ class LogisticRegressionModel(MLModel):
         '''
         train starts a thread to train the model and sets status appropriately
         '''
-        self.__set_status(ModelStatus.TRAINING)
+        self._set_status(ModelStatus.TRAINING)
         logger.info("training started")
-        self.__trainingThread.start()
+        self._trainingThread.start()
 
     def get_model(self):
         '''
@@ -95,10 +95,10 @@ class LogisticRegressionModel(MLModel):
             model i: class name,coeficient 1,coeficient 2,...,coeficient k,bias,
             k is the number of features in the model
         '''
-        if len(self.models) == 0:
+        if len(self._models) == 0:
             return "0:"
-        r = str(len(self.models)) + ":"
-        for model in self.models:
+        r = str(len(self._models)) + ":"
+        for model in self._models:
             for val in model[1].coef_[0]:
                 r += str(val) + ","
             r += model[1].intercept_ + ":"
@@ -109,18 +109,18 @@ class LogisticRegressionModel(MLModel):
         load_model loads an already created model
         takes the string created by get_model as a parameter
         '''
-        # sets self.models to a list of model parameters of type float
+        # sets self._models to a list of model parameters of type float
         #    model parameter format: name, coeficients (one per feature), bias/intercept
         models = st.split(':')
         if models[0] == "0": # loading 0 models, nothing to do
             return
         for model in models:
             m = model.split(',')
-            self.models.append(m[0])
+            self._models.append(m[0])
             for i in range(1, len(m)):
                 m[i] = float(m[i])
-            self.models.append(m)
-            self.__set_status(ModelStatus.COMPLETED)
+            self._models.append(m)
+            self._set_status(ModelStatus.COMPLETED)
 
     def classify(self, features):
         '''
@@ -134,18 +134,20 @@ class LogisticRegressionModel(MLModel):
         elif self.get_status() == ModelStatus.TRAINING:
             raise MLException("Cannot classify: The logistic regression model is being created.")
         ret = list()
-        if type(self.models[0]) == type(list()): # case where models were loaded. model format is name,coeficients,bias
-            for model in self.models:
+        if type(self._models[0]) == type(list()): # case where models were loaded. model format is name,coeficients,bias
+            for model in self._models:
                 s = model[len(model) - 1] # bias
                 for i in range(1, len(features) - 1):
                     s += model[i+1] * features[i] # model is i+1 b/c model[0] is its class
                 if s > 0.5:
                     ret.append(model[0])
         else: # case where models were created. models are type linear_model.LogisticRegression
-            for model in self.models:
+            for model in self._models:
                 s = model[1].intercept_
                 for i in range(len(model[1].coef_[0])):
                     s += model[1].coef_[0][i] * features[i]
                 if s > 0.5:
                     ret.append(model[0])
+        print("HERE")
+        print(len(ret))
         return ret

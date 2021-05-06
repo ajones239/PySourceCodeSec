@@ -19,7 +19,7 @@ class MLManager():
             "Keras neural network":KerasNeuralNetworkModel
         }
 
-    def __has_algorithm(self, alg):
+    def _has_algorithm(self, alg):
         '''
         returns true self.algorithms[alg] is not None
         raises MLException if self.algorithms[alg] does not exist
@@ -36,7 +36,7 @@ class MLManager():
         '''
         generates a model of using the algorithm passed as a parameter
         '''
-        if self.__has_algorithm(alg):
+        if self._has_algorithm(alg):
             err = alg + " model already exists"
             logger.error(err)
             print(err)
@@ -88,6 +88,8 @@ class MLManager():
         takes model (string) to use
         returns a dict of form {line number: list of labels for that line}
         '''
+        if not isinstance(self.algorithms[model], MLModel):
+            raise MLException(model + " model does not exist")
         with open(fname) as f:
             lines = f.readlines()
         ret = dict()
@@ -117,7 +119,7 @@ class MLManager():
 
     def status(self, algorithm):
         #x = 1
-        if self.__has_algorithm(algorithm):
+        if self._has_algorithm(algorithm):
             status = self.algorithms[algorithm].get_status()
             if status == ModelStatus.NOT_CREATED:
                 print(algorithm + " model is not created")

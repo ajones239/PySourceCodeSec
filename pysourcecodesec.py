@@ -137,13 +137,25 @@ def algorithm_prompt(ml_manager, algorithm):
         try:
             cmd = input("cmd: ")
             cmd = cmd.strip()
-            if cmd == "1" or cmd == "2":
-                cmds[cmd](algorithm)
-            else:
-                cmds[cmd](ml_manager)
-        except KeyError:
-            if cmd == "4":
+            if cmd == "3":
+                try:
+                    results = cmds[cmd](ml_manager)
+                except MLException:
+                    err = "Cannot analyze file: there is no existing model"
+                    print(err)
+                    logger.error(err)
+                except FileNotFoundError:
+                    err = "Can not open file: no such file or directory"
+                    print(err)
+                    logger.error(err)
+                # for i in range(len(results)):
+            elif cmd == "4":
                 break
+            else:
+                cmds[cmd](algorithm)
+
+                    
+        except KeyError:
             print("Sorry, {} does not correspond to a valid command.".format(cmd))
 
 

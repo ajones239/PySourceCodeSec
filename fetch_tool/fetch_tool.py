@@ -1,11 +1,9 @@
 import os
 import base64
 import requests
-import threading
 from github import Github
-from threading import Lock
-
-
+from threading import Thread,Lock
+from github import RateLimitExceededException
 
 from pysourcecodesec import logger
 from pysourcecodesec import raw_dir
@@ -13,11 +11,9 @@ from pysourcecodesec import github_credentials
 from pysourcecodesec import raw_lock
 from pysourcecodesec import raw_write_file
 
-from github import RateLimitExceededException
 
 default_search_term = "python"
 
-# 
 def license_is_MIT(repo):
     '''
     Given a Github.Repository.Repository, returns True if the license is MIT, False otherwise
@@ -37,38 +33,37 @@ class FetchTool():
         returns true self.algorithms[alg] is not None
         raises MLException if self.algorithms[alg] does not exist
         '''
-        self.tname = "sample fetch tool"
-        self.__load_github_credentials()
-        self.stop_lock = Lock()
-        self.running = False
         self.search_term = default_search_term
-        self.fetch_thread = threading.Thread(target=self.__collect_python_files)
+        self._load_github_credentials()
+        self._stop_lock = Lock()
+        self._running = False
+        self._fetch_thread = Thread(target=self._collect_python_files)
         
 
 
     def start(self):
-        if self.running:
+        if self._running:
             logger.warning("Fetch tool is already running...")
             return
         logger.info("Starting sample fetch tool...")
-        self.running = True
-        self.fetch_thread.start()
+        self._running = True
+        self._fetch_thread.start()
         logger.info("Sample fetch tool successfully started.")
 
 
     def stop(self):
         logger.info("Stopping sample fetch tool...")
-        self.stop_lock.acquire()
-        self.running = False
-        self.stop_lock.release()
-        if self.fetch_thread.is_alive():
-            self.fetch_thread.join()
-            self.fetch_thread = threading.Thread(target=self.__collect_python_files) #Reinitialize thread
+        self._stop_lock.acquire()
+        self._running = False
+        self._stop_lock.release()
+        if self._fetch_thread.is_alive():
+            self._fetch_thread.join()
+            self._fetch_thread = Thread(target=self._collect_python_files) #Reinitialize thread
         logger.info("Sample fetch tool successfully stopped.")
     
 
     def status(self):
-        if self.running:
+        if self._running:
             print("Sample fetch tool is currently running")
         else:
             print("Sample fetch tool is currently stopped")
@@ -77,17 +72,17 @@ class FetchTool():
     def set_search_term(self, new_search_term):
         logger.info("Updating fetch tool search term from {} to {}".format(self.search_term, new_search_term))
         restart = False
-        if self.running:
-            self.fetch_thread.stop()
-            self.fetch_thread = threading.Thread(target=self.__collect_python_files)
+        if self._running:
+            self._fetch_thread.stop()
+            self._fetch_thread = Thread(target=self._collect_python_files)
             restart = True
         self.search_term = new_search_term
         if restart:
-            self.fetch_thread.start()
+            self._fetch_thread.start()
 
 
     # 
-    def __load_github_credentials(self):
+    def _load_github_credentials(self):
         '''
         This method first checks creds.conf located in the project directory. If it is unable to load GitHub credentials from
         creds.conf, it then checks for the file ~/.git-credentials. Neither exist, GitHub API calls are unauthenticated which 
@@ -135,7 +130,7 @@ class FetchTool():
         self.githubAPI = Github(user,pwd)
 
 
-    def __collect_python_files(self):
+    def _collect_python_files(self):
         '''
         Searches GitHub for 'python' and saves all files with a MIT license to data/raw
         Iterates over all repos found with this search, or until API access times out
@@ -157,10 +152,10 @@ class FetchTool():
                             if not os.path.isfile(fname):
                                 with open(fname, 'wb') as f:
                                     f.write(req.content)
-                        self.stop_lock.acquire()
-                        if not self.running:
+                        self._stop_lock.acquire()
+                        if not self._running:
                             done = True
-                        self.stop_lock.release()
+                        self._stop_lock.release()
                     if done:
                         break
         except RateLimitExceededException:

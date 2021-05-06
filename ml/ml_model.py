@@ -1,23 +1,22 @@
 from abc import ABC,abstractmethod
-from threading import Lock
-from threading import Thread
-from ml.status import ModelStatus
 
 class MLModel(ABC):
-# class MLModel():
 
-    def __init__(self):
+    def _init__(self):
         super().__init__()
 
+    @abstractmethod
     def get_status(self):
         '''
         get_status returns the current status of the model
         '''
         pass
-    
-    def __set_status(self, status):
-        pass
+   
+    # @abstractmethod
+    # def _set_status(self, status):
+    #     pass
 
+    @abstractmethod
     def train(self):
         '''
         train starts a thread to train the model and sets status appropriately
@@ -25,21 +24,21 @@ class MLModel(ABC):
         pass
 
     # @abstractmethod
-    def __train(self):
-        pass
+    # def _train(self):
+    #     pass
 
     # @abstractmethod
     # def get_metrics(self):
     #     pass
 
-    # @abstractmethod
+    @abstractmethod
     def get_model(self):
         '''
         get_model should return a file-writable summary of the model/model parameters
         '''
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def load_model(self, st):
         '''
         load_model loads an already created model
@@ -47,7 +46,7 @@ class MLModel(ABC):
         '''
         pass
 
-    # @abstractmethod
+    @abstractmethod
     def classify(self, features):
         '''
         classify classifies a set of features based on the current model

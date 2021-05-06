@@ -1,0 +1,93 @@
+@startuml
+
+abstract MLModel {
+    +{abstract}get_status()
+    +{abstract}train()
+    +{abstract}get_model()
+    +{abstract}load_model()
+    +{abstract}classify()
+}
+
+class LogisticRegressionModel {
+    -_datafile : str
+    -_models : list
+    -_status : ModelStatus
+    -_status_lock : Lock
+    -_training_thread : Thread
+    +name : str
+    -_set_status()
+    -_train()
+    +get_status()
+    +train()
+    +get_model()
+    +load_model()
+    +classify()
+}
+
+class KerasNeuralNetworkModel {
+    -_datafile : str
+    -_models : list
+    +name : str
+    -_set_status()
+    -_train()
+    -_save_model()
+    +get_status()
+    +train()
+    +get_model()
+    +load_model()
+    +classify()
+}
+
+class MLManager {
+    -_has_algorithm
+    +algorithms : dict
+    +creat_model()
+    +load_models()
+    +save_models()
+    +analyze_file_with_model()
+    +analyze_file()
+    +stop()
+    +status()
+}
+
+class FetchTool {
+    -_stop_lock : Lock
+    -_running : bool
+    -_fetch_thread :Thread
+    -_load_github_credentials()
+    -_collect_python_files()
+    +search_term : str
+    +start()
+    +stop()
+    +status()
+    +set_search_term()
+}
+
+class Labeller {
+    -_processed_files : set
+    -_stop_lock : Lock
+    -_running : bool
+    -_label_thread : Thread
+    -_select_file()
+    -_write_to_csv()
+    -_is_white_space()
+    -_run_labeller()
+    +start()
+    +stop()
+    +status()
+}
+
+enum ModelStatus {
+    NOT_CREATED
+    TRAINING
+    COMPLETED
+}
+
+LogisticRegressionModel --|> MLModel
+KerasNeuralNetworkModel --|> MLModel
+MLManager *-- LogisticRegressionModel
+MLManager *-- KerasNeuralNetworkModel
+LogisticRegressionModel -- ModelStatus
+KerasNeuralNetworkModel -- ModelStatus
+
+@enduml

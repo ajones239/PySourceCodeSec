@@ -79,10 +79,9 @@ The following test modules are the default available tests for Bandit
 bandit_cmd = 'python -m bandit -t B102,B104,B105,B106,B107,B108,B307,B404,B506,B602,B603,B604,B605,B606,B607,B609 \
 --format custom --msg-template "{relpath}:{line}:{test_id}:{confidence}:{severity}:{msg}"'
 
-csv_header = "num_of_strings,cred_vars_present,wordcount,open_present,popen_present,system_present,exec_present,"
-csv_header += "eval_present,input_present,hardcoded_address_present,parses_yaml,is_conditional,num_of_invocations,vulnerability"
-num_of_classes = 4
-num_of_features = 13
+csv_header = "num_of_strings,cred_vars_present,wordcount,open_present,popen_present,system_present,exec_present, \
+eval_present,input_present,hardcoded_address_present,parses_yaml,is_conditional,num_of_invocations,vulnerability"
+
 labels = {
     "none":"none",
     "B102":"calling_external_function",
@@ -102,6 +101,7 @@ labels = {
     "B607":"calling_external_function",
     "B609":"calling_external_function",
 }
+
 classes = [
     "none",
     "calling_external_function",
@@ -241,4 +241,7 @@ features = {
     11:is_conditional,
     12:num_of_invocations
 }
+
+num_of_classes = len(classes) - 1 # classes variable includes none
+num_of_features = len(features)
 
