@@ -108,9 +108,9 @@ def main():
             if flags["-c"]:
                 print("Creating " + algorithm + " model...")
                 manager.create_model(algorithm)
+                while manager.status(algorithm, False) != ModelStatus.COMPLETED:
+                    pass
                 if flags["-s"]:
-                    while manager.status(algorithm) != ModelStatus.COMPLETED:
-                        pass
                     manager.save_models(algorithm)
             if flags["-e"]:
                 try:
@@ -270,7 +270,7 @@ def analyze_file_or_directory(ml_manager, path, algorithm):
                 if len(results[i]) != 0:
                     found = True
                     for vuln in results[i]:
-                        print("Possible {} vulnerability on line {}".format(output[vuln], i))
+                        print("Possible {} vulnerability on line {}".format(output[vuln], i+1))
             if not found:
                 print("No vulnerabilities found in " + f)
     except MLException:

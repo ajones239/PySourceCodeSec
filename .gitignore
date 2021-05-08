@@ -12,5 +12,6 @@ __pycache__
 .ml_algorithms.save
 .nn_model*
 t.py
-test_file.py
 tests.py
+vulnerable1.py
+vulnerable2.py
