@@ -58,7 +58,7 @@ class MLManager():
                 config = line.split(';')[1]
                 logger.info("Loading " + name + " model")
                 try:
-                    if self.has_algorithm(name):
+                    if self._has_algorithm(name):
                         logger.error("Can not load " + name + " model, there is already a model of this algorithm.")
                     else:
                         self.algorithms[name] = self.algorithms[name]()
@@ -73,12 +73,14 @@ class MLManager():
         '''
         saves models in a config file on the filesystem
         '''
-        if os.path.isfile(saveFile):
+        from ml.ml_model import MLModel
+        if not os.path.isfile(saveFile):
             f_t = open(saveFile, 'x')
             f_t.close()
         with open(saveFile, 'r+') as f:
             for alg in algorithms:
-                f.write(self.algorithms[alg].get_model()+'\n')
+                if isinstance(self.algorithms[alg], MLModel):
+                    f.write(alg + ';' + self.algorithms[alg].get_model()+'\n')
             f.truncate()
             
     def analyze_file_with_model(self, fname, model):
@@ -98,9 +100,6 @@ class MLManager():
             for j in range(len(features)):
                 featureValues.append(features[j](lines[i]))
             ret[i] = self.algorithms[model].classify(featureValues)
-            print(ret[i])
-            print(i)
-            print(featureValues)
         return ret
 
     def analyze_file(self, fname):
@@ -114,19 +113,19 @@ class MLManager():
             ret[a] = self.analyze_file_with_model(fname, a)
         return ret
             
-    def stop(self):
-        x = 1
 
-    def status(self, algorithm):
-        #x = 1
+    def status(self, algorithm, display=True):
         if self._has_algorithm(algorithm):
             status = self.algorithms[algorithm].get_status()
             if status == ModelStatus.NOT_CREATED:
-                print(algorithm + " model is not created")
+                msg = algorithm + " model is not created"
             elif status == ModelStatus.TRAINING:
-                print(algorithm + " model is training")
+                msg = algorithm + " model is training"
             elif status == ModelStatus.COMPLETED:
-                print(algorithm + " model is completed")
+                msg = algorithm + " model is completed"
         else:
-            print("There is no " + algorithm + " model")
-
+            status = None
+            msg = "There is no " + algorithm + " model"
+        if display:
+            print(msg)
+        return status

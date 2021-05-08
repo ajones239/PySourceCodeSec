@@ -1,6 +1,6 @@
 import pandas
 import numpy
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
@@ -22,7 +22,7 @@ class KerasNeuralNetworkModel(MLModel):
         self._models = list()
         self._status = ModelStatus.NOT_CREATED
         self._status_lock = Lock()
-        self._trainingThread = Thread(target=self._train)
+        self._trainingThread = Thread(target=self._train, daemon=True)
 
     def get_status(self):
         '''
@@ -45,6 +45,7 @@ class KerasNeuralNetworkModel(MLModel):
         self._models is set to a list of (class as string, linear_model.LogisticRegression objects)
         '''
         dataset = pandas.read_csv(self._datafile, header=0).values
+        dataset = numpy.delete(dataset, 0, 0)
         X = dataset[:,0:13].astype(float)
         Y = dataset[:, 13]
         for c in range(len(classes)):
@@ -62,10 +63,9 @@ class KerasNeuralNetworkModel(MLModel):
             model.add(Dense(13, activation='relu'))
             model.add(Dense(1, activation='sigmoid'))
             model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-            model.fit(X, Y_t, epochs=500, batch_size=10, verbose=0)
+            model.fit(X, Y_t, epochs=150, batch_size=10, verbose=0)
             self._models.append((classes[c], model))
-
-            self._set_status(ModelStatus.COMPLETED)
+        self._set_status(ModelStatus.COMPLETED)
 
     def train(self):
         '''
@@ -76,8 +76,8 @@ class KerasNeuralNetworkModel(MLModel):
         self._trainingThread.start()
 
     def _save_model(self):
-        for i in range(len(models)):
-            self._models[i].save('.nn_model_'+str(i+1)+'.h5')
+        for i in range(len(self._models)):
+            self._models[i][1].save('.nn_model_'+str(i+1)+'.h5')
 
     def get_model(self):
         '''
@@ -88,23 +88,17 @@ class KerasNeuralNetworkModel(MLModel):
         self._save_model()
         return str(len(self._models))
 
-    def load_model(self, count):
+    def load_model(self, scount):
         '''
         load_model loads an already created model
         takes the string created by get_model as a parameter
         '''
         # sets self._models to a list of model parameters of type float
         #    model parameter format: name, coeficients (one per feature), bias/intercept
-        models = st.split(':')
-        if models[0] == "0": # loading 0 models, nothing to do
-            return
-        for model in models:
-            m = model.split(',')
-            self._models.append(m[0])
-            for i in range(1, len(m)):
-                m[i] = float(m[i])
-            self._models.append(m)
-            self._set_status(ModelStatus.COMPLETED)
+        count = int(scount)
+        for i in range(count):
+            self._models.append((classes[i+1], load_model(".nn_model_" + str(i+1) + ".h5")))
+        self._set_status(ModelStatus.COMPLETED)
 
     def classify(self, features):
         '''
@@ -120,6 +114,7 @@ class KerasNeuralNetworkModel(MLModel):
         ret = list()
         for model in self._models:
             predictions = model[1].predict(numpy.array([features]))
-            ret.append((model[0], predictions[0]))
+            if predictions[0] > 0.5:
+                ret.append(model[0])
         return ret
 

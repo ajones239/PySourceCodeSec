@@ -33,6 +33,7 @@ class FetchTool():
         returns true self.algorithms[alg] is not None
         raises MLException if self.algorithms[alg] does not exist
         '''
+        self.name = "sample fetch tool"
         self.search_term = default_search_term
         self._load_github_credentials()
         self._stop_lock = Lock()

@@ -16,6 +16,7 @@ from labeller.features import labels
 class Labeller():
 
     def __init__(self):
+        self.name = "sample labeller"
         self._processed_files = set()
         self._stop_lock = Lock()
         self._running = False

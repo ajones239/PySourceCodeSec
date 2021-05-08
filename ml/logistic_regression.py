@@ -19,7 +19,7 @@ class LogisticRegressionModel(MLModel):
         self._models = list() # list of ("name", model) tuples
         self._status = ModelStatus.NOT_CREATED
         self._status_lock = Lock()
-        self._trainingThread = Thread(target=self._train)
+        self._trainingThread = Thread(target=self._train, daemon=True)
 
     def get_status(self):
         '''
@@ -101,8 +101,8 @@ class LogisticRegressionModel(MLModel):
         for model in self._models:
             for val in model[1].coef_[0]:
                 r += str(val) + ","
-            r += model[1].intercept_ + ":"
-        return r
+            r += str(model[1].intercept_[0]) + ":"
+        return r[:-1]
 
     def load_model(self, st):
         '''
@@ -114,12 +114,15 @@ class LogisticRegressionModel(MLModel):
         models = st.split(':')
         if models[0] == "0": # loading 0 models, nothing to do
             return
-        for model in models:
-            m = model.split(',')
-            self._models.append(m[0])
-            for i in range(1, len(m)):
-                m[i] = float(m[i])
-            self._models.append(m)
+        for i in range(len(models)):
+            if i == 0:
+                continue
+            m = models[i].split(',')
+            # self._models.append(m[0])
+            r = list()
+            for i in range(len(m)):
+                r.append(float(m[i]))
+            self._models.append(r)
             self._set_status(ModelStatus.COMPLETED)
 
     def classify(self, features):
@@ -148,6 +151,4 @@ class LogisticRegressionModel(MLModel):
                     s += model[1].coef_[0][i] * features[i]
                 if s > 0.5:
                     ret.append(model[0])
-        print("HERE")
-        print(len(ret))
         return ret
