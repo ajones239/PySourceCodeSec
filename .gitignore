@@ -11,3 +11,6 @@ __pycache__
 .vscode
 .ml_algorithms.save
 .nn_model*
+t.py
+test_file.py
+tests.py
