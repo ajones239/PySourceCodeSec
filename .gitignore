@@ -4,8 +4,10 @@ creds.conf
 events.log
 data/*
 data/processed.csv
-ml/__pycache__/*
-labeller/__pycache__/*
-fetch_tool/__pycache__/*
-__pycache__/*
+ml/__pycache__
+labeller/__pycache__
+fetch_tool/__pycache__
+__pycache__
 .vscode
+.ml_algorithms.save
+.nn_model*

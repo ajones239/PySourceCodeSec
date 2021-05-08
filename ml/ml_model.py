@@ -23,6 +23,7 @@ class MLModel(ABC):
     def get_model(self):
         '''
         get_model should return a file-writable summary of the model/model parameters
+        if a MLModel implements its own method for saving models, it should return a placeholder string
         '''
         pass
 
