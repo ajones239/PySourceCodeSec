@@ -12,24 +12,12 @@ class MLModel(ABC):
         '''
         pass
    
-    # @abstractmethod
-    # def _set_status(self, status):
-    #     pass
-
     @abstractmethod
     def train(self):
         '''
         train starts a thread to train the model and sets status appropriately
         '''
         pass
-
-    # @abstractmethod
-    # def _train(self):
-    #     pass
-
-    # @abstractmethod
-    # def get_metrics(self):
-    #     pass
 
     @abstractmethod
     def get_model(self):

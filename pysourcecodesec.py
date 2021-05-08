@@ -3,6 +3,12 @@ import logging
 import sys
 from threading import Lock
 
+names = {
+    "nn": "Keras neural network",
+    "lr": "logistic regression",
+    None:  "Keras neural network"
+}
+
 log_file = 'events.log'
 logging.basicConfig(filename=log_file,
                     format='%(asctime)s | %(levelname)s | %(message)s',
@@ -20,7 +26,7 @@ github_credentials = 'creds.conf'
 
 # raw_dir specifies the directory to load raw unformatted Python sample files fetched from the fetch_tool
 raw_dir = "data/raw/" 
-processed_file = "/home/user/dev/PySourceCodeSec/data/processed.csv"
+processed_file = "data/processed.csv"
 raw_write_file = ""
 raw_lock = Lock()
 
@@ -94,11 +100,9 @@ def main():
             from ml.status import ModelStatus
             from ml.ml_exception import MLException
             manager = MLManager()
-            if options["-a"] == "lr":
-                algorithm = "logistic regression"
-            elif options["-a"] == "nn" or options["-a"] == None:
-                algorithm = "Keras neural network"
-            else:
+            try:
+                algorithm = names[options["-a"]]
+            except KeyError:
                 print(options["-a"] + " is not a valid algorithm")
                 sys.exit(1)
             if flags["-c"]:
@@ -119,7 +123,6 @@ def main():
                     if os.path.isdir(options["-f"]):
                         files = collect_file_paths(options["-f"], flags["-r"])
                     elif os.path.isfile(options["-f"]):
-                        print("2")
                         files.append(options["-f"])
                     else:
                         print("Error: no such file or directory: " + options["-f"])
@@ -175,13 +178,13 @@ def main_prompt():
         print("(2) sample labeller")
         print("(3) machine learning models")
         print("(q) quit")
-        cmd = input("cmd: ")
+        sys.stdout.write("cmd: ")
+        cmd = input()
         cmd = cmd.strip()
         if cmd == "q":
             print("quiting...")
             sample_fetcher.stop()
             sample_labeller.stop()
-            ml_manager.stop()
             break
         try:
             cmds[cmd](args[cmd])
@@ -209,7 +212,8 @@ def fetch_tool_prompt(fetcher):
         print("(5) print current search term")
         print("(6) back")
         try:
-            cmd = input("cmd: ")
+            sys.stdout.write("cmd: ")
+            cmd = input()
             cmd = cmd.strip()
             cmds[cmd]()
         except KeyError:
@@ -235,7 +239,8 @@ def labeller_prompt(labeller):
         print("(3) status")
         print("(4) back")
         try:
-            cmd = input("cmd: ")
+            sys.stdout.write("cmd: ")
+            cmd = input()
             cmd = cmd.strip()
             cmds[cmd]()
         except KeyError:
@@ -258,7 +263,7 @@ def analyze_file_or_directory(ml_manager, path, algorithm):
         else:
             files.append(path)
         for f in files:
-            print("Analyzing " + f)
+            print("Analyzing " + f + "...")
             results = ml_manager.analyze_file_with_model(f, algorithm)
             found = False
             for i in range(len(results)):
@@ -296,7 +301,8 @@ def algorithm_prompt(ml_manager, algorithm):
         print("(3) analyze file or directory")
         print("(4) back")
         try:
-            cmd = input("cmd: ")
+            sys.stdout.write("cmd: ")
+            cmd = input()
             cmd = cmd.strip()
             if cmd == "3":
                 f = input("Enter file or directory: ")
@@ -328,20 +334,19 @@ def ml_prompt(ml_manager):
         print("(4) Load saved models")
         print("(5) back")
         try:
-            cmd = input("cmd: ")
+            sys.stdout.write("cmd: ")
+            cmd = input()
             cmd = cmd.strip()
             if cmd == "3" or cmd == "4":
                 cmds[cmd]()
             else:
                 cmds[cmd](ml_manager, algorithms[int(cmd) - 1])
-        except RecursionError:
-            print("FDFDS")
-        # except KeyError:
-        #     if cmd == "5":
-        #         break
-        #     print("Sorry, {} does not correspond to a valid command.".format(cmd))
-        # except ValueError:
-        #      print("Sorry, {} does not correspond to a valid command.".format(cmd))           
+        except KeyError:
+            if cmd == "5":
+                break
+            print("Sorry, {} does not correspond to a valid command.".format(cmd))
+        except ValueError:
+             print("Sorry, {} does not correspond to a valid command.".format(cmd))           
     print()
  
 
