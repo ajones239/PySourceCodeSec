@@ -1,7 +1,7 @@
 import pandas
 import numpy
 from keras.models import Sequential, load_model
-from keras.layers import Dense
+from keras.layers import Dense, Dropout
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 from threading import Thread, Lock
@@ -62,6 +62,7 @@ class KerasNeuralNetworkModel(MLModel):
             model.add(Dense(20, input_dim=13, activation='relu'))
             model.add(Dense(13, activation='relu'))
             model.add(Dense(1, activation='sigmoid'))
+            model.add(Dropout(0.4))
             model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
             model.fit(X, Y_t, epochs=150, batch_size=10, verbose=0)
             self._models.append((classes[c], model))
