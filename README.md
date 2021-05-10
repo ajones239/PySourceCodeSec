@@ -7,6 +7,18 @@ PySourceCodeSec includes the necessary tools to create your own dataset and mach
 
 PySourceCodeSec has been rigorously tested on Linux, but it should work on Mac and Windows too. If you have CUDA libraries installed, PySourceCodeSec will automatically take advantage of your GPU when training the neural network.
 
+## The Code
+The codebase for PySourceCodeSec is divided into three modules: the data collection module (fetch_tool), the data processing module (labeller), and the machine learning module (ml). All interface code is defined in pysourcecodesec.py.
+
+### fetch_tool
+The fetch tool consists of a single class with a few globally defined variables and helper functions. The fetch tool runs its own thread and simply downloads code from GitHub using the Python GitHub API.
+
+### labeller
+The labeller was designed similarly to the fetch tool. It is a single class that runs in its own thread. However, there are two files in the labeller module. The labeller.py file contains the actual labeller class, while the features.py file contains functions for defining various features of source code as well as global constant variables that are referenced in other modules.
+
+### ml
+The machine learning module contains six files. There is a file for the MLManager class, which acts as the point of contact for interacting with the machine learning components. Actions such as creating new models, analyzing files, and saving/loading existing models to disk are all controlled though the MLManager class. There is also an abstract class MLModel, defined in its own file, that defines some abstract methods each machine learning class must implement. It is used more like an interface, although implemented as an abstract class since Python does not support interfaces. There are two classes, each with its own file, that extend the MLModel class. These are the logistic regression model and the neural network model. There is also a status file that defined the ModelStatus enum, and the ml_exception file to define a custom MLException class.
+
 ### Defaults
 #### Machine learning algorithms
 PySourceCodeSec includes a logistic regression model and an artificial neural network built using the Keras sequential API.
